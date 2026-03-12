@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --forest: #2e7d32;
+  --forest-deep: #16451d;
+  --orange: #f57c00;
+  --orange-soft: #ffb04d;
+  --cream: #fafafa;
+  --charcoal: #212121;
+  --sand: #f4ede1;
+  --shadow: 0 24px 80px rgba(17, 24, 39, 0.14);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at top, rgba(245, 124, 0, 0.08), transparent 30%),
+    linear-gradient(180deg, #fffdf8 0%, #f8f4ea 100%);
+  color: var(--charcoal);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.container-shell {
+  margin: 0 auto;
+  width: min(1200px, calc(100% - 2rem));
+}
+
+.section-space {
+  padding: 5rem 0;
+}
+
+.card-lift {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow);
+}
+
+.hero-overlay {
+  background:
+    linear-gradient(135deg, rgba(22, 69, 29, 0.82), rgba(33, 33, 33, 0.48)),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.25));
+}
+
+.pattern-grid {
+  background-image:
+    linear-gradient(rgba(250, 250, 250, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(250, 250, 250, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.prose-copy p {
+  margin-top: 1rem;
+  line-height: 1.75;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: rgba(245, 124, 0, 0.14);
+  color: var(--orange);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.shadow-soft {
+  box-shadow: var(--shadow);
+}
