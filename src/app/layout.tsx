@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   title: `${siteSettings.siteName} | ${siteSettings.tagline}`,
   description: siteSettings.mission,
   icons: {
-    icon: "/images/logo.jpeg",
-    shortcut: "/images/logo.jpeg",
-    apple: "/images/logo.jpeg",
+    icon: "/images/logo-edited.png",
+    shortcut: "/images/logo-edited.png",
+    apple: "/images/logo-edited.png",
   },
   openGraph: {
     title: `${siteSettings.siteName} | ${siteSettings.tagline}`,

@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
-import { Icon, LogoMark } from "@/components/icons";
+import { Icon } from "@/components/icons";
 import { navigation, siteSettings } from "@/lib/content";
 
 export function Footer() {
@@ -9,7 +10,13 @@ export function Footer() {
       <div className="container-shell grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <LogoMark />
+            <Image
+              src="/images/logo-edited.png"
+              alt={`${siteSettings.siteName} logo`}
+              width={56}
+              height={56}
+              className="h-14 w-14 object-contain"
+            />
             <div>
               <div className="text-xl font-extrabold">{siteSettings.siteName}</div>
               <div className="text-sm text-white/70">{siteSettings.tagline}</div>

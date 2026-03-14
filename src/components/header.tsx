@@ -14,11 +14,11 @@ export function Header() {
       <div className="container-shell flex items-center justify-between py-4">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/images/logo.jpeg"
+            src="/images/logo-edited.png"
             alt={`${siteSettings.siteName} logo`}
             width={56}
             height={56}
-            className="h-14 w-14 rounded-full object-cover"
+            className="h-14 w-14 object-contain"
             priority
           />
           <div>
