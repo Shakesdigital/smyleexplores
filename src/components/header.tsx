@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { LogoMark } from "@/components/icons";
 import { navigation, siteSettings } from "@/lib/content";
 
 export function Header() {
@@ -13,7 +13,14 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
       <div className="container-shell flex items-center justify-between py-4">
         <Link href="/" className="flex items-center gap-3">
-          <LogoMark />
+          <Image
+            src="/images/logo.jpeg"
+            alt={`${siteSettings.siteName} logo`}
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full object-cover"
+            priority
+          />
           <div>
             <div className="text-lg font-extrabold text-[var(--forest)]">{siteSettings.siteName}</div>
             <div className="text-xs text-neutral-500">{siteSettings.tagline}</div>

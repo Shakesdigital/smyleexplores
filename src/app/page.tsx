@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <main>
       <HeroBanner
-        image="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80"
+        image="/images/home-hero-rafting.jpeg"
         title="Explore Uganda. Feel Alive."
         subtitle="Curated Nile adventures, authentic local encounters, and premium travel experiences crafted from the heart of Jinja."
         ctaLabel="View Our Tours"

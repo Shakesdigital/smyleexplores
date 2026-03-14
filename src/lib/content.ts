@@ -126,7 +126,7 @@ export const tours: Tour[] = [
     groupSize: "2-24 guests",
     startingPrice: "$115 per person (half day) / $145 per person (full day)",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/white-water-rafting.jpeg",
     highlights: [
       "Grade 4-5 rapids on the world's longest river",
       "No experience required",

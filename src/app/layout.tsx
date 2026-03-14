@@ -10,6 +10,11 @@ import { siteSettings } from "@/lib/content";
 export const metadata: Metadata = {
   title: `${siteSettings.siteName} | ${siteSettings.tagline}`,
   description: siteSettings.mission,
+  icons: {
+    icon: "/images/logo.jpeg",
+    shortcut: "/images/logo.jpeg",
+    apple: "/images/logo.jpeg",
+  },
   openGraph: {
     title: `${siteSettings.siteName} | ${siteSettings.tagline}`,
     description: siteSettings.mission,
