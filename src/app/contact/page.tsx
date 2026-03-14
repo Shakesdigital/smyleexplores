@@ -8,7 +8,7 @@ import { siteSettings } from "@/lib/content";
 export default function ContactPage() {
   return (
     <main>
-      <HeroBanner image="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1800&q=80" title="Get in Touch" subtitle="Tell us what kind of Uganda experience you’re looking for and we’ll help shape the journey." compact />
+      <HeroBanner image="/images/boat-ride-girls.jpeg" title="Get in Touch" subtitle="Tell us what kind of Uganda experience you’re looking for and we’ll help shape the journey." compact />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[1fr_0.9fr]">
           <div>

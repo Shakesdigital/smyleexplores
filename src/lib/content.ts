@@ -155,7 +155,7 @@ export const tours: Tour[] = [
     groupSize: "1-12 guests",
     startingPrice: "$85 per person (approx UGX 310,000)",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/bungee-jumping.jpeg",
     highlights: [
       "44-meter free fall over the Victoria Nile",
       "Certified modern bungee equipment",
@@ -211,7 +211,7 @@ export const tours: Tour[] = [
     groupSize: "2-20 guests",
     startingPrice: "$50 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/nile-tubing.jpeg",
     highlights: [
       "Float on big inflatable tubes",
       "Class 1-3 rapids (gentle and fun)",
@@ -239,7 +239,7 @@ export const tours: Tour[] = [
     groupSize: "2-30 guests",
     startingPrice: "$35 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/sunset-cruise.jpeg",
     highlights: [
       "Golden-hour views of the Nile and Lake Victoria",
       "Spot fish eagles, cormorants, and egrets",
@@ -267,7 +267,7 @@ export const tours: Tour[] = [
     groupSize: "1-16 guests",
     startingPrice: "$55 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/quad-biking.jpeg",
     highlights: [
       "Ride through villages, forests, and along the Nile's edge",
       "Safety briefing and practice session included",
@@ -295,7 +295,7 @@ export const tours: Tour[] = [
     groupSize: "1-10 guests",
     startingPrice: "$45 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/horseback-riding.jpeg",
     highlights: [
       "Ride well-trained horses along the Nile riverbank",
       "Pass through traditional Ugandan villages",
@@ -406,7 +406,7 @@ export const blogPosts: BlogPost[] = [
     date: "March 1, 2025",
     excerpt: "A curated story from Smyle Explores with practical insights, local perspective, and inspiration for your next journey in Uganda.",
     category: "Adventure",
-    image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/blog-top-5-jinja.jpeg",
   },
   {
     slug: "what-to-expect-on-your-first-white-water-rafting-trip",
@@ -414,7 +414,7 @@ export const blogPosts: BlogPost[] = [
     date: "February 18, 2025",
     excerpt: "A curated story from Smyle Explores with practical insights, local perspective, and inspiration for your next journey in Uganda.",
     category: "Travel Tips",
-    image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/home-hero-rafting.jpeg",
   },
   {
     slug: "ugandas-hidden-gems-beyond-the-gorillas",
@@ -430,7 +430,7 @@ export const blogPosts: BlogPost[] = [
     date: "January 12, 2025",
     excerpt: "A curated story from Smyle Explores with practical insights, local perspective, and inspiration for your next journey in Uganda.",
     category: "Travel Tips",
-    image: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/blog-jinja-weekend-getaway.jpeg",
   },
 ];
 

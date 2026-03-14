@@ -8,7 +8,7 @@ import { aboutStory, teamMembers, valueItems } from "@/lib/content";
 export default function AboutPage() {
   return (
     <main>
-      <HeroBanner image="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=80" title="About Smyle Explores" subtitle="A travel company rooted in Jinja, built around safe adventure, authentic encounters, and the living beauty of Uganda." compact />
+      <HeroBanner image="/images/about-hero-tubing.jpeg" title="About Smyle Explores" subtitle="A travel company rooted in Jinja, built around safe adventure, authentic encounters, and the living beauty of Uganda." compact />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <SectionHeading eyebrow="Our Story" title="Born in Jinja. Built to help travelers feel Uganda, not just see it." />

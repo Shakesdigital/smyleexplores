@@ -6,7 +6,7 @@ import { tours } from "@/lib/content";
 export default function ToursPage() {
   return (
     <main>
-      <HeroBanner image="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1800&q=80" title="Our Tours" subtitle="Adventure Awaits on the Banks of the Nile" compact />
+      <HeroBanner image="/images/boat-ride-girls.jpeg" title="Our Tours" subtitle="Adventure Awaits on the Banks of the Nile" compact />
       <section className="section-space">
         <div className="container-shell">
           <SectionHeading eyebrow="Adventure Capital" title="Jinja is Uganda’s gateway to river adventure, local culture, and unforgettable landscapes." description="Located on the shores of Lake Victoria at the source of the world's longest river, Jinja blends high-energy activities with relaxed beauty and meaningful local experiences." />
