@@ -54,7 +54,17 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="container-shell mt-10 border-t border-white/10 pt-6 text-sm text-white/55">© 2025 Smyle Explores. All Rights Reserved.</div>
+      <div className="container-shell mt-10 border-t border-white/10 pt-6 text-center text-sm text-white/55">
+        (c) 2026 Smyle Explores. All Rights Reserved. Designed and Powered by{" "}
+        <Link
+          href="https://www.shakesdigital.com"
+          className="font-semibold text-white transition hover:text-[var(--orange)]"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Shakes Digital
+        </Link>
+      </div>
     </footer>
   );
 }
