@@ -52,8 +52,8 @@ export default function HomePage() {
       </section>
       <section className="section-space relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/home-quote-feature.jpeg')" }}
+          className="absolute inset-0 bg-cover"
+          style={{ backgroundImage: "url('/images/home-quote-feature.jpeg')", backgroundPosition: "center 22%" }}
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="container-shell relative">
