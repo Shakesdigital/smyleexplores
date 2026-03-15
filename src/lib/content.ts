@@ -6,8 +6,8 @@ export const siteSettings = {
   mission:
     "To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures that allow clients to explore the beauty, culture, and hidden gems of the Pearl of Africa while creating lasting memories and genuine connections.",
   email: "info@smyleexplores.com",
-  phone: "+256 700 000 000",
-  whatsappUrl: "https://wa.me/256700000000",
+  phone: "+256 759 211 663",
+  whatsappUrl: "https://wa.me/256759211663",
   address: "Jinja, Uganda",
   officeHours: [
     "Monday - Friday: 8:00 AM - 6:00 PM",
@@ -17,7 +17,7 @@ export const siteSettings = {
   socialLinks: {
     instagram: "#",
     facebook: "#",
-    whatsapp: "https://wa.me/256700000000",
+    whatsapp: "https://wa.me/256759211663",
   },
 };
 

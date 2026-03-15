@@ -2,23 +2,18 @@
 
 import { FormEvent, useState } from "react";
 
+import { siteSettings } from "@/lib/content";
+
 type FormState = {
   pending: boolean;
   success: string;
   error: string;
 };
 
-async function submitJson(url: string, body: Record<string, string>) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Something went wrong.");
-  }
-  return data;
+function openWhatsApp(message: string) {
+  const separator = siteSettings.whatsappUrl.includes("?") ? "&" : "?";
+  const url = `${siteSettings.whatsappUrl}${separator}text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 export function ContactForm() {
@@ -30,8 +25,16 @@ export function ContactForm() {
     const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     try {
       setState({ pending: true, success: "", error: "" });
-      const result = await submitJson("/api/contact", payload);
-      setState({ pending: false, success: result.message, error: "" });
+      const message = [
+        "New Smyle Explores contact inquiry",
+        `Name: ${payload.name}`,
+        `Email: ${payload.email}`,
+        `Phone: ${payload.phone}`,
+        `Subject: ${payload.subject}`,
+        `Message: ${payload.message}`,
+      ].join("\n");
+      openWhatsApp(message);
+      setState({ pending: false, success: "Opening WhatsApp so you can send your inquiry directly.", error: "" });
       form.reset();
     } catch (error) {
       setState({ pending: false, success: "", error: error instanceof Error ? error.message : "Submission failed." });
@@ -67,8 +70,18 @@ export function QuoteForm() {
     const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     try {
       setState({ pending: true, success: "", error: "" });
-      const result = await submitJson("/api/quote", payload);
-      setState({ pending: false, success: result.message, error: "" });
+      const message = [
+        "New Smyle Explores quote request",
+        `Name: ${payload.name}`,
+        `Email: ${payload.email}`,
+        `Phone: ${payload.phone}`,
+        `Travel Date: ${payload.travelDate}`,
+        `Guests: ${payload.guests}`,
+        `Preferred Tour: ${payload.tour || "Not specified"}`,
+        `Special Requests: ${payload.specialRequests || "None"}`,
+      ].join("\n");
+      openWhatsApp(message);
+      setState({ pending: false, success: "Opening WhatsApp so you can send your quote request directly.", error: "" });
       form.reset();
     } catch (error) {
       setState({ pending: false, success: "", error: error instanceof Error ? error.message : "Submission failed." });
@@ -93,7 +106,7 @@ export function QuoteForm() {
       <button type="submit" disabled={state.pending} className="rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white transition hover:bg-[var(--forest)] disabled:opacity-70">
         {state.pending ? "Sending..." : "Submit"}
       </button>
-      <p className="text-sm text-neutral-500">We&apos;ll respond within 24 hours with a personalized quote.</p>
+      <p className="text-sm text-neutral-500">Your request will open in WhatsApp for a faster response from our team.</p>
       {state.success ? <p className="text-sm font-semibold text-[var(--forest)]">{state.success}</p> : null}
       {state.error ? <p className="text-sm font-semibold text-red-600">{state.error}</p> : null}
     </form>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { HeroBanner } from "@/components/hero-banner";
 import { Icon } from "@/components/icons";
 import { SectionHeading } from "@/components/section-heading";
-import { aboutStory, teamMembers, valueItems } from "@/lib/content";
+import { aboutStory, valueItems } from "@/lib/content";
 
 export default function AboutPage() {
   return (
@@ -25,26 +25,15 @@ export default function AboutPage() {
       </section>
       <section className="section-space pt-0">
         <div className="container-shell">
-          <div className="rounded-[2rem] bg-[var(--forest)] px-8 py-12 text-center text-white shadow-soft md:px-16">
-            <div className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Mission</div>
-            <blockquote className="mx-auto mt-4 max-w-4xl text-2xl font-black leading-tight md:text-4xl">“To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures.”</blockquote>
-          </div>
-        </div>
-      </section>
-      <section className="section-space bg-white/70">
-        <div className="container-shell">
-          <SectionHeading eyebrow="Meet The Team" title="The people shaping each journey behind the scenes and on the ground." />
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {teamMembers.map((member) => (
-              <article key={member.name} className="card-lift overflow-hidden rounded-[2rem] border border-black/5 bg-white">
-                <div className="h-72 bg-cover bg-center" style={{ backgroundImage: `url(${member.image})` }} />
-                <div className="p-6">
-                  <h3 className="text-2xl font-black">{member.name}</h3>
-                  <p className="mt-2 text-sm font-bold text-[var(--orange)]">{member.role}</p>
-                  <p className="mt-4 text-sm leading-7 text-neutral-600">{member.bio}</p>
-                </div>
-              </article>
-            ))}
+          <div className="relative overflow-hidden rounded-[2rem] px-8 py-12 text-center text-white shadow-soft md:px-16">
+            <Image src="/images/paddling-on-the-nile.jpeg" alt="Paddling on the Nile" fill className="object-cover" />
+            <div className="absolute inset-0 bg-black/45" />
+            <div className="relative">
+              <div className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Mission</div>
+              <blockquote className="mx-auto mt-4 max-w-4xl text-2xl font-black leading-tight md:text-4xl">
+                To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures.
+              </blockquote>
+            </div>
           </div>
         </div>
       </section>
