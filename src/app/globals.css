@@ -86,3 +86,12 @@ h6 {
 .shadow-soft {
   box-shadow: var(--shadow);
 }
+
+.carousel-track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}

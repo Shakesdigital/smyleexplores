@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { QuoteForm } from "@/components/forms";
+import { RelatedToursCarousel } from "@/components/related-tours-carousel";
 import { SectionHeading } from "@/components/section-heading";
 import { tours } from "@/lib/content";
 
@@ -84,15 +84,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
       <section className="section-space bg-white/70">
         <div className="container-shell">
           <SectionHeading eyebrow="Related Tours" title="Keep exploring around Jinja." />
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {relatedTours.map((item) => (
-              <Link key={item.slug} href={`/tours/${item.slug}`} className="card-lift rounded-[2rem] border border-black/5 bg-white p-6">
-                <div className="badge">{item.difficulty}</div>
-                <h3 className="mt-4 text-2xl font-black">{item.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-neutral-600">{item.shortDescription}</p>
-              </Link>
-            ))}
-          </div>
+          <RelatedToursCarousel tours={relatedTours} />
         </div>
       </section>
     </main>
