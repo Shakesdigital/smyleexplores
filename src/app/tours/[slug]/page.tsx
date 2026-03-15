@@ -15,7 +15,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
   const tour = tours.find((item) => item.slug === slug);
   if (!tour) notFound();
 
-  const relatedTours = tours.filter((item) => tour.relatedTourSlugs.includes(item.slug));
+  const relatedTours = tours.filter((item) => item.slug !== slug);
 
   return (
     <main>
