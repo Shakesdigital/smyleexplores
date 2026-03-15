@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { HeroBanner } from "@/components/hero-banner";
@@ -11,7 +12,14 @@ export default function AboutPage() {
       <HeroBanner image="/images/about-hero-tubing.jpeg" title="About Smyle Explores" subtitle="A travel company rooted in Jinja, built around safe adventure, authentic encounters, and the living beauty of Uganda." compact />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-          <SectionHeading eyebrow="Our Story" title="Born in Jinja. Built to help travelers feel Uganda, not just see it." />
+          <div className="space-y-8">
+            <SectionHeading eyebrow="Our Story" title="Born in Jinja. Built to help travelers feel Uganda, not just see it." />
+            <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
+              <div className="relative h-80">
+                <Image src="/images/about-story-gogolo.jpeg" alt="Smyle Explores team member on a boat" fill className="object-cover" />
+              </div>
+            </div>
+          </div>
           <div className="prose-copy text-neutral-600">{aboutStory.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
         </div>
       </section>

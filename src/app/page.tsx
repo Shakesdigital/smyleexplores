@@ -51,8 +51,11 @@ export default function HomePage() {
         </div>
       </section>
       <section className="section-space relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1800&q=80')] bg-cover bg-center" />
-        <div className="absolute inset-0 bg-[var(--forest)]/80" />
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/home-quote-feature.jpeg')" }}
+        />
+        <div className="absolute inset-0 bg-black/50" />
         <div className="container-shell relative">
           <blockquote className="mx-auto max-w-4xl text-center text-3xl font-black leading-tight text-white md:text-5xl">{homeQuote}</blockquote>
         </div>

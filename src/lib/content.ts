@@ -155,7 +155,7 @@ export const tours: Tour[] = [
     groupSize: "1-12 guests",
     startingPrice: "$85 per person (approx UGX 310,000)",
     location: "Jinja, Uganda",
-    heroImage: "/images/bungee-jumping.jpeg",
+    heroImage: "/images/bungee-jumping-edited.png",
     highlights: [
       "44-meter free fall over the Victoria Nile",
       "Certified modern bungee equipment",
@@ -183,7 +183,7 @@ export const tours: Tour[] = [
     groupSize: "1-10 guests",
     startingPrice: "$45 per person (half day)",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/nile-kayaking.jpg",
     highlights: [
       "Tandem and solo kayak options",
       "Professional coaching for beginners",
@@ -323,7 +323,7 @@ export const tours: Tour[] = [
     groupSize: "2-12 guests",
     startingPrice: "$70 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/nile-jet-boating.jpg",
     highlights: [
       "High-speed thrills on the Nile",
       "Race past Grade 5 rapids",
@@ -351,7 +351,7 @@ export const tours: Tour[] = [
     groupSize: "2-25 guests",
     startingPrice: "$30 per person",
     location: "Jinja, Uganda",
-    heroImage: "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1600&q=80",
+    heroImage: "/images/source-of-the-nile-boat-tour.jpg",
     highlights: [
       "Guided boat ride to the exact source of the world's longest river",
       "Historical significance discovered by British explorer John Hanning Speke in 1858",
