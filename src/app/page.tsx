@@ -19,11 +19,6 @@ export default function HomePage() {
       />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
-            <div className="relative h-[520px]">
-              <Image src="/images/home-pearl-of-africa.jpeg" alt="Smyle Explores experience in Uganda" fill className="object-cover" />
-            </div>
-          </div>
           <div className="space-y-8 pt-4 lg:pt-8">
             <SectionHeading eyebrow="Pearl of Africa" title="Travel deeper into Uganda with a team that knows how to make every moment count." />
             <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
@@ -31,6 +26,11 @@ export default function HomePage() {
                 <p>Smyle Explores creates unforgettable journeys across Uganda, combining the drama of the Nile with the warmth of local hospitality.</p>
                 <p>Based in Jinja, we help travelers experience the Pearl of Africa through safe adventures, authentic cultural moments, and carefully handled details that make the trip feel effortless.</p>
               </div>
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
+            <div className="relative h-[520px]">
+              <Image src="/images/home-pearl-of-africa.jpeg" alt="Smyle Explores experience in Uganda" fill className="object-cover" />
             </div>
           </div>
         </div>
