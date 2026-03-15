@@ -18,30 +18,32 @@ export default function HomePage() {
         ctaHref="/tours"
       />
       <section className="section-space">
-        <div className="container-shell grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-          <div>
+        <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="space-y-8">
             <SectionHeading eyebrow="Pearl of Africa" title="Travel deeper into Uganda with a team that knows how to make every moment count." />
-            <div className="mt-6 space-y-6 text-lg leading-8 text-neutral-600">
-              <p>Smyle Explores creates unforgettable journeys across Uganda, combining the drama of the Nile with the warmth of local hospitality.</p>
-              <p>Based in Jinja, we help travelers experience the Pearl of Africa through safe adventures, authentic cultural moments, and carefully handled details that make the trip feel effortless.</p>
-            </div>
-            <div className="mt-12">
-              <SectionHeading eyebrow="Why Choose Us" title="Adventure with trust, local depth, and exceptional care." description="We design experiences that feel premium without losing the honesty and spirit of Uganda." />
-              <div className="mt-12 grid gap-6 md:grid-cols-3">
-                {whyChooseUs.map((item) => (
-                  <article key={item.title} className="card-lift rounded-[2rem] border border-black/5 bg-white p-8">
-                    <div className="inline-flex rounded-2xl bg-[var(--forest)]/10 p-4 text-[var(--forest)]"><Icon name={item.icon} className="h-7 w-7" /></div>
-                    <h3 className="mt-6 text-2xl font-black">{item.title}</h3>
-                    <p className="mt-4 text-sm leading-7 text-neutral-600">{item.description}</p>
-                  </article>
-                ))}
+            <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
+              <div className="relative h-[520px]">
+                <Image src="/images/home-pearl-of-africa.jpeg" alt="Smyle Explores experience in Uganda" fill className="object-cover" />
               </div>
             </div>
           </div>
-          <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
-            <div className="relative h-[580px] min-h-full">
-              <Image src="/images/home-pearl-of-africa.jpeg" alt="Smyle Explores experience in Uganda" fill className="object-cover" />
-            </div>
+          <div className="space-y-6 text-lg leading-8 text-neutral-600">
+            <p>Smyle Explores creates unforgettable journeys across Uganda, combining the drama of the Nile with the warmth of local hospitality.</p>
+            <p>Based in Jinja, we help travelers experience the Pearl of Africa through safe adventures, authentic cultural moments, and carefully handled details that make the trip feel effortless.</p>
+          </div>
+        </div>
+      </section>
+      <section className="section-space pt-0">
+        <div className="container-shell">
+          <SectionHeading eyebrow="Why Choose Us" title="Adventure with trust, local depth, and exceptional care." description="We design experiences that feel premium without losing the honesty and spirit of Uganda." />
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {whyChooseUs.map((item) => (
+              <article key={item.title} className="card-lift rounded-[2rem] border border-black/5 bg-white p-8">
+                <div className="inline-flex rounded-2xl bg-[var(--forest)]/10 p-4 text-[var(--forest)]"><Icon name={item.icon} className="h-7 w-7" /></div>
+                <h3 className="mt-6 text-2xl font-black">{item.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-neutral-600">{item.description}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
