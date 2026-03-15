@@ -25,15 +25,11 @@ export default function AboutPage() {
       </section>
       <section className="section-space pt-0">
         <div className="container-shell">
-          <div className="relative overflow-hidden rounded-[2rem] px-8 py-12 text-center text-white shadow-soft md:px-16">
-            <Image src="/images/paddling-on-the-nile.jpeg" alt="Paddling on the Nile" fill className="object-cover" />
-            <div className="absolute inset-0 bg-black/45" />
-            <div className="relative">
-              <div className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Mission</div>
-              <blockquote className="mx-auto mt-4 max-w-4xl text-2xl font-black leading-tight md:text-4xl">
-                To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures.
-              </blockquote>
-            </div>
+          <div className="rounded-[2rem] bg-[var(--forest)] px-8 py-12 text-center text-white shadow-soft md:px-16">
+            <div className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Mission</div>
+            <blockquote className="mx-auto mt-4 max-w-4xl text-2xl font-black leading-tight md:text-4xl">
+              To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures.
+            </blockquote>
           </div>
         </div>
       </section>
