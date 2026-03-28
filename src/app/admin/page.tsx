@@ -20,6 +20,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+type AdminTab = "landing" | "tours" | "blog" | "submissions";
+
 function prettyJson(value: Record<string, unknown>) {
   return JSON.stringify(value, null, 2);
 }
@@ -104,14 +106,38 @@ function SaveButton({ children }: { children: string }) {
   );
 }
 
-function SectionTab({ href, label }: { href: string; label: string }) {
+function WorkspaceHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
   return (
-    <a
-      href={href}
-      className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white/85 transition hover:border-white hover:bg-white/10"
+    <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+      <div className="max-w-3xl">
+        <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{eyebrow}</div>
+        <h2 className="mt-3 text-3xl font-black text-[var(--forest-deep)]">{title}</h2>
+        <p className="mt-3 text-sm leading-7 text-neutral-600">{description}</p>
+      </div>
+    </section>
+  );
+}
+
+function SectionTab({ tab, label, active }: { tab: AdminTab; label: string; active: boolean }) {
+  return (
+    <Link
+      href={`/admin?tab=${tab}`}
+      className={`rounded-full px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] transition ${
+        active
+          ? "bg-white text-[var(--forest-deep)]"
+          : "border border-white/15 bg-white/5 text-white/85 hover:border-white hover:bg-white/10"
+      }`}
     >
       {label}
-    </a>
+    </Link>
   );
 }
 
@@ -269,12 +295,16 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string }>;
 }) {
   if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
 
   const params = searchParams ? await searchParams : undefined;
+  const activeTab: AdminTab =
+    params?.tab === "tours" || params?.tab === "blog" || params?.tab === "submissions" || params?.tab === "landing"
+      ? params.tab
+      : "landing";
   const dashboard = await getAdminDashboardData();
   const homePage = dashboard.pages.find((page) => page.slug === "home");
   const aboutPage = dashboard.pages.find((page) => page.slug === "about");
@@ -326,12 +356,10 @@ export default async function AdminPage({
 
         <section className="rounded-[2rem] bg-[var(--charcoal)] px-6 py-5 shadow-soft">
           <div className="flex flex-wrap gap-3">
-            <SectionTab href="#hero-editors" label="Hero Editors" />
-            <SectionTab href="#page-editors" label="Pages" />
-            <SectionTab href="#tour-management" label="Tours" />
-            <SectionTab href="#blog-management" label="Blog" />
-            <SectionTab href="#settings-suite" label="Settings" />
-            <SectionTab href="#submissions" label="Submissions" />
+            <SectionTab tab="landing" label="Landing Pages" active={activeTab === "landing"} />
+            <SectionTab tab="tours" label="Tour Pages" active={activeTab === "tours"} />
+            <SectionTab tab="blog" label="Blog" active={activeTab === "blog"} />
+            <SectionTab tab="submissions" label="Form Submissions" active={activeTab === "submissions"} />
           </div>
         </section>
 
@@ -349,14 +377,27 @@ export default async function AdminPage({
           <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-sm leading-7 text-red-900">{params.error}</div>
         ) : null}
 
-        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-          {dashboard.stats.map((item) => (
+        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            { label: "Pages", value: dashboard.stats.find((item) => item.label === "Pages")?.value ?? 0 },
+            { label: "Tours", value: dashboard.stats.find((item) => item.label === "Tours")?.value ?? 0 },
+            { label: "Blog Posts", value: dashboard.stats.find((item) => item.label === "Blog Posts")?.value ?? 0 },
+            { label: "Submissions", value: dashboard.stats.find((item) => item.label === "Submissions")?.value ?? 0 },
+          ].map((item) => (
             <article key={item.label} className="rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft">
               <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{item.label}</div>
               <div className="mt-4 text-4xl font-black text-[var(--forest-deep)]">{item.value}</div>
             </article>
           ))}
         </section>
+
+        {activeTab === "landing" ? (
+          <>
+        <WorkspaceHeader
+          eyebrow="Landing Pages"
+          title="Edit core page content"
+          description="Focus on hero sections, landing-page copy, homepage support blocks, and site settings without unrelated tour or blog forms on screen."
+        />
 
         <section id="settings-suite" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Settings Suite</h2>
@@ -578,6 +619,59 @@ export default async function AdminPage({
             </form>
           ) : null}
         </section>
+        <section className="grid gap-6 xl:grid-cols-2">
+          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Testimonials</h2>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the testimonial cards on the homepage.</p>
+            <div className="mt-8 space-y-6">
+              {dashboard.testimonials.map((testimonial, index) => (
+                <form key={testimonial.id ?? testimonial.name} action={upsertTestimonialAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  {testimonial.id ? <input type="hidden" name="id" value={testimonial.id} /> : null}
+                  <input type="hidden" name="order_column" value={String(index)} />
+                  <Field label="Name" name="name" defaultValue={testimonial.name} />
+                  <div className="mt-3">
+                    <Field label="Subtitle" name="title" defaultValue={testimonial.title} />
+                  </div>
+                  <div className="mt-3">
+                    <TextAreaField label="Quote" name="quote" defaultValue={testimonial.quote} rows={5} />
+                  </div>
+                  <SaveButton>Save Testimonial</SaveButton>
+                </form>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Company Values</h2>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the value cards on the About page.</p>
+            <div className="mt-8 space-y-6">
+              {dashboard.companyValues.map((value, index) => (
+                <form key={value.id ?? value.title} action={upsertCompanyValueAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  {value.id ? <input type="hidden" name="id" value={value.id} /> : null}
+                  <input type="hidden" name="order_column" value={String(index)} />
+                  <Field label="Title" name="title" defaultValue={value.title} />
+                  <div className="mt-3">
+                    <TextAreaField label="Description" name="description" defaultValue={value.description} rows={4} />
+                  </div>
+                  <div className="mt-3">
+                    <Field label="Icon" name="icon" defaultValue={value.icon} />
+                  </div>
+                  <SaveButton>Save Value</SaveButton>
+                </form>
+              ))}
+            </div>
+          </div>
+        </section>
+          </>
+        ) : null}
+
+        {activeTab === "tours" ? (
+          <>
+        <WorkspaceHeader
+          eyebrow="Tour Pages"
+          title="Manage itinerary pages"
+          description="Create new destination tours or edit existing itinerary pages in one focused workspace."
+        />
 
         <section id="tour-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Destination Tour Editors</h2>
@@ -625,50 +719,16 @@ export default async function AdminPage({
             ))}
           </div>
         </section>
+          </>
+        ) : null}
 
-        <section className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Testimonials</h2>
-            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the testimonial cards on the homepage.</p>
-            <div className="mt-8 space-y-6">
-              {dashboard.testimonials.map((testimonial, index) => (
-                <form key={testimonial.id ?? testimonial.name} action={upsertTestimonialAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
-                  {testimonial.id ? <input type="hidden" name="id" value={testimonial.id} /> : null}
-                  <input type="hidden" name="order_column" value={String(index)} />
-                  <Field label="Name" name="name" defaultValue={testimonial.name} />
-                  <div className="mt-3">
-                    <Field label="Subtitle" name="title" defaultValue={testimonial.title} />
-                  </div>
-                  <div className="mt-3">
-                    <TextAreaField label="Quote" name="quote" defaultValue={testimonial.quote} rows={5} />
-                  </div>
-                  <SaveButton>Save Testimonial</SaveButton>
-                </form>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Company Values</h2>
-            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the value cards on the About page.</p>
-            <div className="mt-8 space-y-6">
-              {dashboard.companyValues.map((value, index) => (
-                <form key={value.id ?? value.title} action={upsertCompanyValueAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
-                  {value.id ? <input type="hidden" name="id" value={value.id} /> : null}
-                  <input type="hidden" name="order_column" value={String(index)} />
-                  <Field label="Title" name="title" defaultValue={value.title} />
-                  <div className="mt-3">
-                    <TextAreaField label="Description" name="description" defaultValue={value.description} rows={4} />
-                  </div>
-                  <div className="mt-3">
-                    <Field label="Icon" name="icon" defaultValue={value.icon} />
-                  </div>
-                  <SaveButton>Save Value</SaveButton>
-                </form>
-              ))}
-            </div>
-          </div>
-        </section>
+        {activeTab === "blog" ? (
+          <>
+        <WorkspaceHeader
+          eyebrow="Blog"
+          title="Manage journal content"
+          description="Create and update blog posts in a dedicated writing workspace with blog landing-page controls and article editing together."
+        />
 
         <section id="blog-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Blog Posts</h2>
@@ -729,6 +789,16 @@ export default async function AdminPage({
             ))}
           </div>
         </section>
+          </>
+        ) : null}
+
+        {activeTab === "submissions" ? (
+          <>
+        <WorkspaceHeader
+          eyebrow="Form Submissions"
+          title="Review inquiries and quote requests"
+          description="Monitor recent contact and quote submissions in one clean area without page-management forms around them."
+        />
 
         <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Recent Submissions</h2>
@@ -760,6 +830,8 @@ export default async function AdminPage({
             )}
           </div>
         </section>
+          </>
+        ) : null}
       </div>
     </main>
   );
