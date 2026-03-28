@@ -13,11 +13,11 @@ export function TourCard({
   showHighlights?: boolean;
 }) {
   return (
-    <article className="card-lift overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-sm">
+    <article className="card-lift flex h-full flex-col overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-sm">
       <div className="relative h-56">
         <Image src={tour.heroImage} alt={tour.title} fill className="object-cover" />
       </div>
-      <div className="p-6">
+      <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="badge">{tour.destination}</div>
@@ -46,7 +46,7 @@ export function TourCard({
             ))}
           </div>
         ) : null}
-        <Link href={`/tours/${tour.slug}`} className="mt-6 inline-flex rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+        <Link href={`/tours/${tour.slug}`} className="mt-auto inline-flex rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
           View Itinerary
         </Link>
       </div>

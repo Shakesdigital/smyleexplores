@@ -49,10 +49,10 @@ export function RelatedToursCarousel({
       </div>
       <div
         ref={trackRef}
-        className="carousel-track mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4"
+        className="carousel-track mt-8 flex items-stretch snap-x snap-mandatory gap-6 overflow-x-auto pb-4"
       >
         {tours.map((tour) => (
-          <div key={tour.slug} className="min-w-[88%] snap-start sm:min-w-[70%] md:min-w-[48%] lg:min-w-[calc((100%-3rem)/3)]">
+          <div key={tour.slug} className="flex min-w-[88%] snap-start sm:min-w-[70%] md:min-w-[48%] lg:min-w-[calc((100%-3rem)/3)]">
             <TourCard tour={tour} showPrice={showPrice} showHighlights={showHighlights} />
           </div>
         ))}
