@@ -1,21 +1,40 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { QuoteForm } from "@/components/forms";
 import { RelatedToursCarousel } from "@/components/related-tours-carousel";
 import { SectionHeading } from "@/components/section-heading";
-import { tours } from "@/lib/content";
+import { getSiteSettings, getTourBySlug, getTours } from "@/lib/cms";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const tours = await getTours();
   return tours.map((tour) => ({ slug: tour.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const [tour, settings] = await Promise.all([getTourBySlug(slug), getSiteSettings()]);
+
+  if (!tour) return {};
+
+  return {
+    title: tour.metaTitle ?? `${tour.title} | ${settings.siteName}`,
+    description: tour.metaDescription ?? tour.shortDescription,
+    openGraph: {
+      title: tour.metaTitle ?? `${tour.title} | ${settings.siteName}`,
+      description: tour.metaDescription ?? tour.shortDescription,
+      images: tour.metaImageUrl ? [tour.metaImageUrl] : tour.heroImage ? [tour.heroImage] : undefined,
+    },
+  };
 }
 
 export default async function TourDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const tour = tours.find((item) => item.slug === slug);
+  const [tour, allTours, settings] = await Promise.all([getTourBySlug(slug), getTours(), getSiteSettings()]);
   if (!tour) notFound();
 
-  const relatedTours = tours.filter((item) => item.slug !== slug);
+  const relatedTours = allTours.filter((item) => item.slug !== slug);
 
   return (
     <main>
@@ -44,13 +63,13 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
             <div className="mt-12">
               <h2 className="text-3xl font-black">What&apos;s Included</h2>
               <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700 md:grid-cols-2">
-                {tour.included.map((item) => <li key={item} className="rounded-2xl bg-[var(--forest)]/8 px-5 py-4 font-medium text-[var(--forest-deep)]">✓ {item}</li>)}
+                {tour.included.map((item) => <li key={item} className="rounded-2xl bg-[var(--forest)]/8 px-5 py-4 font-medium text-[var(--forest-deep)]">Included: {item}</li>)}
               </ul>
             </div>
             <div className="mt-12">
               <h2 className="text-3xl font-black">What to Bring</h2>
               <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700 md:grid-cols-2">
-                {tour.bring.map((item) => <li key={item} className="rounded-2xl bg-[var(--orange)]/10 px-5 py-4 font-medium text-[var(--charcoal)]">✓ {item}</li>)}
+                {tour.bring.map((item) => <li key={item} className="rounded-2xl bg-[var(--orange)]/10 px-5 py-4 font-medium text-[var(--charcoal)]">Bring: {item}</li>)}
               </ul>
             </div>
           </div>
@@ -76,7 +95,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
             <div id="quote">
               <h2 className="text-3xl font-black">Request a Quote</h2>
               <p className="mt-3 text-sm leading-7 text-neutral-600">Share your preferred date, group size, and any special travel needs.</p>
-              <div className="mt-6"><QuoteForm /></div>
+              <div className="mt-6"><QuoteForm whatsappUrl={settings.whatsappUrl} /></div>
             </div>
           </div>
         </div>

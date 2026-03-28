@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { navigation, siteSettings } from "@/lib/content";
+import { NavItem, SiteSettings } from "@/lib/types";
 
-export function Header() {
+export function Header({ navigation, siteSettings }: { navigation: NavItem[]; siteSettings: SiteSettings }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -14,7 +14,7 @@ export function Header() {
       <div className="container-shell flex items-center justify-between py-4">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/images/logo-edited.png"
+            src={siteSettings.branding.logo}
             alt={`${siteSettings.siteName} logo`}
             width={56}
             height={56}

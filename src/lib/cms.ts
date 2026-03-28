@@ -1,0 +1,534 @@
+import { cache } from "react";
+
+import {
+  aboutStory,
+  blogPosts as fallbackBlogPosts,
+  featuredTours as fallbackFeaturedTours,
+  homeQuote,
+  navigation as fallbackNavigation,
+  siteSettings as fallbackSiteSettings,
+  teamMembers as fallbackTeamMembers,
+  testimonials as fallbackTestimonials,
+  tours as fallbackTours,
+  valueItems as fallbackValueItems,
+  whyChooseUs,
+} from "@/lib/content";
+import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase";
+import { BlogPost, CmsPage, NavItem, SiteSettings, SubmissionRecord, TeamMember, Testimonial, Tour, ValueItem } from "@/lib/types";
+
+type SettingRow = {
+  group_key: string;
+  key: string;
+  value: unknown;
+  is_public: boolean;
+};
+
+type PageRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  status: string;
+  content: Record<string, unknown> | null;
+  featured_image_url: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_image_url: string | null;
+  published_at: string | null;
+};
+
+type TourRow = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: unknown;
+  duration: string;
+  difficulty: string;
+  minimum_age: string;
+  group_size: string | null;
+  starting_price: string;
+  location: string;
+  hero_image_url: string | null;
+  highlights: unknown;
+  included: unknown;
+  what_to_bring: unknown;
+  status: string;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_image_url: string | null;
+  published_at: string | null;
+};
+
+type BlogRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: Record<string, unknown> | null;
+  category: string | null;
+  featured_image_url: string | null;
+  status: string;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_image_url: string | null;
+  published_at: string | null;
+};
+
+type TestimonialRow = {
+  id: string;
+  name: string;
+  title: string | null;
+  quote: string;
+};
+
+type TeamMemberRow = {
+  id: string;
+  name: string;
+  role: string;
+  bio: string | null;
+  photo_url: string | null;
+};
+
+type ValueRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+};
+
+type NavigationRow = {
+  label: string;
+  href: string;
+};
+
+type ContactSubmissionRow = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: string;
+  created_at: string;
+};
+
+type QuoteRequestRow = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  guests: string;
+  preferred_tour: string | null;
+  special_requests: string | null;
+  status: string;
+  created_at: string;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+
+function asStringArray(value: unknown, fallback: string[] = []) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  return fallback;
+}
+
+function asObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function formatDisplayDate(value: string | null | undefined) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function mapSettings(rows: SettingRow[]): SiteSettings {
+  const settings: SiteSettings = {
+    ...fallbackSiteSettings,
+    officeHours: [...fallbackSiteSettings.officeHours],
+    socialLinks: { ...fallbackSiteSettings.socialLinks },
+    branding: {
+      logo: "/images/logo-edited.png",
+      primaryColor: "#D56017",
+      secondaryColor: "#12372A",
+    },
+    seo: {
+      defaultTitle: `${fallbackSiteSettings.siteName} | ${fallbackSiteSettings.tagline}`,
+      defaultDescription: fallbackSiteSettings.mission,
+      defaultImage: "/images/logo-edited.png",
+    },
+  };
+
+  for (const row of rows) {
+    switch (row.key) {
+      case "site_name":
+        settings.siteName = asString(row.value, settings.siteName);
+        break;
+      case "tagline":
+        settings.tagline = asString(row.value, settings.tagline);
+        break;
+      case "mission":
+        settings.mission = asString(row.value, settings.mission);
+        break;
+      case "email":
+        settings.email = asString(row.value, settings.email);
+        break;
+      case "phone":
+        settings.phone = asString(row.value, settings.phone);
+        break;
+      case "whatsapp_url":
+        settings.whatsappUrl = asString(row.value, settings.whatsappUrl);
+        settings.socialLinks.whatsapp = settings.whatsappUrl;
+        break;
+      case "address":
+        settings.address = asString(row.value, settings.address);
+        break;
+      case "office_hours":
+        settings.officeHours = asStringArray(row.value, settings.officeHours);
+        break;
+      case "instagram_url":
+        settings.socialLinks.instagram = asString(row.value, settings.socialLinks.instagram);
+        break;
+      case "facebook_url":
+        settings.socialLinks.facebook = asString(row.value, settings.socialLinks.facebook);
+        break;
+      case "logo_url":
+        settings.branding.logo = asString(row.value, settings.branding.logo);
+        break;
+      case "primary_color":
+        settings.branding.primaryColor = asString(row.value, settings.branding.primaryColor);
+        break;
+      case "secondary_color":
+        settings.branding.secondaryColor = asString(row.value, settings.branding.secondaryColor);
+        break;
+      case "seo_default_title":
+        settings.seo.defaultTitle = asString(row.value, settings.seo.defaultTitle);
+        break;
+      case "seo_default_description":
+        settings.seo.defaultDescription = asString(row.value, settings.seo.defaultDescription);
+        break;
+      case "seo_default_image":
+        settings.seo.defaultImage = asString(row.value, settings.seo.defaultImage);
+        break;
+      default:
+        break;
+    }
+  }
+
+  return settings;
+}
+
+function mapTour(row: TourRow): Tour {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    shortDescription: row.summary ?? "",
+    duration: row.duration,
+    difficulty: row.difficulty,
+    minAge: row.minimum_age,
+    groupSize: row.group_size ?? "",
+    startingPrice: row.starting_price,
+    location: row.location,
+    heroImage: row.hero_image_url ?? "/images/home-hero-rafting.jpeg",
+    highlights: asStringArray(row.highlights),
+    included: asStringArray(row.included),
+    bring: asStringArray(row.what_to_bring),
+    overview: asStringArray(row.description),
+    relatedTourSlugs: [],
+    status: row.status,
+    metaTitle: row.meta_title,
+    metaDescription: row.meta_description,
+    metaImageUrl: row.meta_image_url,
+    publishedAt: row.published_at,
+  };
+}
+
+function mapBlogPost(row: BlogRow): BlogPost {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    date: formatDisplayDate(row.published_at),
+    excerpt: row.excerpt ?? "",
+    category: row.category ?? "General",
+    image: row.featured_image_url ?? "/images/blog-top-5-jinja.jpeg",
+    status: row.status,
+    content: row.content ?? {},
+    metaTitle: row.meta_title,
+    metaDescription: row.meta_description,
+    metaImageUrl: row.meta_image_url,
+    publishedAt: row.published_at,
+  };
+}
+
+function mapPage(row: PageRow): CmsPage {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    status: row.status,
+    content: row.content ?? {},
+    featuredImageUrl: row.featured_image_url,
+    metaTitle: row.meta_title,
+    metaDescription: row.meta_description,
+    metaImageUrl: row.meta_image_url,
+    publishedAt: row.published_at,
+  };
+}
+
+export const getSiteSettings = cache(async () => {
+  const client = createSupabaseServerClient();
+  if (!client) return mapSettings([]);
+
+  const { data } = await client
+    .from("settings")
+    .select("group_key,key,value,is_public")
+    .eq("is_public", true);
+
+  return mapSettings((data ?? []) as SettingRow[]);
+});
+
+export const getNavigation = cache(async (): Promise<NavItem[]> => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackNavigation;
+
+  const { data } = await client
+    .from("navigation_items")
+    .select("label,href")
+    .eq("status", "published")
+    .order("order_column", { ascending: true });
+
+  if (!data?.length) return fallbackNavigation;
+
+  return data as NavigationRow[];
+});
+
+export async function getPageContent<T extends Record<string, unknown>>(slug: string, fallbackContent: T) {
+  const client = createSupabaseServerClient();
+  if (!client) {
+    return { page: null as CmsPage | null, content: fallbackContent };
+  }
+
+  const { data } = await client
+    .from("pages")
+    .select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!data) {
+    return { page: null as CmsPage | null, content: fallbackContent };
+  }
+
+  const page = mapPage(data as PageRow);
+  return {
+    page,
+    content: {
+      ...fallbackContent,
+      ...asObject(page.content),
+    } as T,
+  };
+}
+
+export const getTours = cache(async () => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackTours;
+
+  const { data } = await client
+    .from("tours")
+    .select("id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  if (!data?.length) return fallbackTours;
+
+  const rows = (data as TourRow[]).map(mapTour);
+  const fallbackMap = new Map(fallbackTours.map((tour) => [tour.slug, tour.relatedTourSlugs]));
+  for (const row of rows) {
+    row.relatedTourSlugs = fallbackMap.get(row.slug) ?? [];
+  }
+
+  return rows;
+});
+
+export async function getTourBySlug(slug: string) {
+  const tours = await getTours();
+  return tours.find((tour) => tour.slug === slug) ?? null;
+}
+
+export const getFeaturedTours = cache(async () => {
+  const tours = await getTours();
+  return tours.slice(0, 6);
+});
+
+export const getBlogPosts = cache(async () => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackBlogPosts;
+
+  const { data } = await client
+    .from("blog_posts")
+    .select("id,slug,title,excerpt,content,category,featured_image_url,status,meta_title,meta_description,meta_image_url,published_at")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  if (!data?.length) return fallbackBlogPosts;
+
+  return (data as BlogRow[]).map(mapBlogPost);
+});
+
+export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackTestimonials;
+
+  const { data } = await client
+    .from("testimonials")
+    .select("id,name,title,quote")
+    .order("order_column", { ascending: true });
+
+  if (!data?.length) return fallbackTestimonials;
+
+  return (data as TestimonialRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    title: row.title ?? "",
+    quote: row.quote,
+  }));
+});
+
+export const getTeamMembers = cache(async (): Promise<TeamMember[]> => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackTeamMembers;
+
+  const { data } = await client
+    .from("team_members")
+    .select("id,name,role,bio,photo_url")
+    .order("order_column", { ascending: true });
+
+  if (!data?.length) return fallbackTeamMembers;
+
+  return (data as TeamMemberRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    bio: row.bio ?? "",
+    image: row.photo_url ?? "/images/about-story-gogolo.jpeg",
+  }));
+});
+
+export const getCompanyValues = cache(async (): Promise<ValueItem[]> => {
+  const client = createSupabaseServerClient();
+  if (!client) return fallbackValueItems;
+
+  const { data } = await client
+    .from("company_values")
+    .select("id,title,description,icon")
+    .order("order_column", { ascending: true });
+
+  if (!data?.length) return fallbackValueItems;
+
+  return (data as ValueRow[]).map((row) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description ?? "",
+    icon: row.icon ?? "spark",
+  }));
+});
+
+export function getStaticFallbackContent() {
+  return {
+    aboutStory,
+    homeQuote,
+    whyChooseUs,
+  };
+}
+
+export async function getAdminDashboardData() {
+  const client = createSupabaseServiceRoleClient();
+  const settings = await getSiteSettings();
+  const navigation = await getNavigation();
+  const publicTours = await getTours();
+  const publicBlogPosts = await getBlogPosts();
+
+  if (!client) {
+    return {
+      settings,
+      navigation,
+      pages: [] as CmsPage[],
+      tours: publicTours,
+      blogPosts: publicBlogPosts,
+      submissions: [] as SubmissionRecord[],
+      stats: [
+        { label: "Settings", value: 16 },
+        { label: "Pages", value: 0 },
+        { label: "Tours", value: publicTours.length },
+        { label: "Blog Posts", value: publicBlogPosts.length },
+        { label: "Submissions", value: 0 },
+      ],
+      hasServiceRole: false,
+    };
+  }
+
+  const [pagesResult, toursResult, blogResult, contactResult, quoteResult] = await Promise.all([
+    client.from("pages").select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at").order("slug", { ascending: true }),
+    client.from("tours").select("id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at").order("title", { ascending: true }),
+    client.from("blog_posts").select("id,slug,title,excerpt,content,category,featured_image_url,status,meta_title,meta_description,meta_image_url,published_at").order("published_at", { ascending: false }),
+    client.from("contact_submissions").select("id,name,email,phone,subject,message,status,created_at").order("created_at", { ascending: false }).limit(10),
+    client.from("quote_requests").select("id,name,email,phone,guests,preferred_tour,special_requests,status,created_at").order("created_at", { ascending: false }).limit(10),
+  ]);
+
+  const pages = ((pagesResult.data ?? []) as PageRow[]).map(mapPage);
+  const tours = ((toursResult.data ?? []) as TourRow[]).map(mapTour);
+  const blogPosts = ((blogResult.data ?? []) as BlogRow[]).map(mapBlogPost);
+  const contactSubmissions = ((contactResult.data ?? []) as ContactSubmissionRow[]).map((row) => ({
+    id: row.id,
+    type: "contact" as const,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    status: row.status,
+    summary: `${row.subject}: ${row.message}`,
+    createdAt: row.created_at,
+  }));
+  const quoteRequests = ((quoteResult.data ?? []) as QuoteRequestRow[]).map((row) => ({
+    id: row.id,
+    type: "quote" as const,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    status: row.status,
+    summary: `${row.guests} guests${row.preferred_tour ? `, preferred tour: ${row.preferred_tour}` : ""}${row.special_requests ? `, notes: ${row.special_requests}` : ""}`,
+    createdAt: row.created_at,
+  }));
+
+  return {
+    settings,
+    navigation,
+    pages,
+    tours,
+    blogPosts,
+    submissions: [...contactSubmissions, ...quoteRequests].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    stats: [
+      { label: "Settings", value: 16 },
+      { label: "Pages", value: pages.length },
+      { label: "Tours", value: tours.length },
+      { label: "Blog Posts", value: blogPosts.length },
+      { label: "Submissions", value: contactSubmissions.length + quoteRequests.length },
+    ],
+    hasServiceRole: true,
+  };
+}
+
+export const featuredToursFallback = fallbackFeaturedTours;

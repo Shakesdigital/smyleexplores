@@ -5,32 +5,41 @@ import "./globals.css";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
-import { siteSettings } from "@/lib/content";
+import { getNavigation, getSiteSettings } from "@/lib/cms";
 
-export const metadata: Metadata = {
-  title: `${siteSettings.siteName} | ${siteSettings.tagline}`,
-  description: siteSettings.mission,
-  icons: {
-    icon: "/images/logo-edited.png",
-    shortcut: "/images/logo-edited.png",
-    apple: "/images/logo-edited.png",
-  },
-  openGraph: {
-    title: `${siteSettings.siteName} | ${siteSettings.tagline}`,
-    description: siteSettings.mission,
-    siteName: siteSettings.siteName,
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return {
+    metadataBase: new URL(siteUrl),
+    title: settings.seo.defaultTitle || `${settings.siteName} | ${settings.tagline}`,
+    description: settings.seo.defaultDescription || settings.mission,
+    icons: {
+      icon: settings.branding.logo,
+      shortcut: settings.branding.logo,
+      apple: settings.branding.logo,
+    },
+    openGraph: {
+      title: settings.seo.defaultTitle || `${settings.siteName} | ${settings.tagline}`,
+      description: settings.seo.defaultDescription || settings.mission,
+      siteName: settings.siteName,
+      type: "website",
+      images: settings.seo.defaultImage ? [settings.seo.defaultImage] : undefined,
+    },
+  };
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const [siteSettings, navigation] = await Promise.all([getSiteSettings(), getNavigation()]);
+
   return (
     <html lang="en">
       <body>
-        <Header />
+        <Header navigation={navigation} siteSettings={siteSettings} />
         {children}
-        <Footer />
-        <WhatsAppFloat />
+        <Footer navigation={navigation} siteSettings={siteSettings} />
+        <WhatsAppFloat whatsappUrl={siteSettings.whatsappUrl} />
       </body>
     </html>
   );

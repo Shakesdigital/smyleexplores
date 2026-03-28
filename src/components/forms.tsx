@@ -2,21 +2,13 @@
 
 import { FormEvent, useState } from "react";
 
-import { siteSettings } from "@/lib/content";
-
 type FormState = {
   pending: boolean;
   success: string;
   error: string;
 };
 
-function openWhatsApp(message: string) {
-  const separator = siteSettings.whatsappUrl.includes("?") ? "&" : "?";
-  const url = `${siteSettings.whatsappUrl}${separator}text=${encodeURIComponent(message)}`;
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
-export function ContactForm() {
+export function ContactForm({ whatsappUrl }: { whatsappUrl: string }) {
   const [state, setState] = useState<FormState>({ pending: false, success: "", error: "" });
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -25,16 +17,24 @@ export function ContactForm() {
     const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     try {
       setState({ pending: true, success: "", error: "" });
-      const message = [
-        "New Smyle Explores contact inquiry",
-        `Name: ${payload.name}`,
-        `Email: ${payload.email}`,
-        `Phone: ${payload.phone}`,
-        `Subject: ${payload.subject}`,
-        `Message: ${payload.message}`,
-      ].join("\n");
-      openWhatsApp(message);
-      setState({ pending: false, success: "Opening WhatsApp so you can send your inquiry directly.", error: "" });
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) {
+        throw new Error(result.error ?? "Submission failed.");
+      }
+
+      setState({
+        pending: false,
+        success: result.message ?? "Inquiry saved successfully.",
+        error: "",
+      });
       form.reset();
     } catch (error) {
       setState({ pending: false, success: "", error: error instanceof Error ? error.message : "Submission failed." });
@@ -52,16 +52,21 @@ export function ContactForm() {
         <input required name="subject" placeholder="Subject" className="rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
       </div>
       <textarea required name="message" placeholder="Message" rows={5} className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
-      <button type="submit" disabled={state.pending} className="rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white transition hover:bg-[var(--forest)] disabled:opacity-70">
-        {state.pending ? "Sending..." : "Submit"}
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={state.pending} className="rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white transition hover:bg-[var(--forest)] disabled:opacity-70">
+          {state.pending ? "Sending..." : "Submit"}
+        </button>
+        <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[var(--forest)] px-6 py-4 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+          Message on WhatsApp
+        </a>
+      </div>
       {state.success ? <p className="text-sm font-semibold text-[var(--forest)]">{state.success}</p> : null}
       {state.error ? <p className="text-sm font-semibold text-red-600">{state.error}</p> : null}
     </form>
   );
 }
 
-export function QuoteForm() {
+export function QuoteForm({ whatsappUrl }: { whatsappUrl: string }) {
   const [state, setState] = useState<FormState>({ pending: false, success: "", error: "" });
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -70,18 +75,24 @@ export function QuoteForm() {
     const payload = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
     try {
       setState({ pending: true, success: "", error: "" });
-      const message = [
-        "New Smyle Explores quote request",
-        `Name: ${payload.name}`,
-        `Email: ${payload.email}`,
-        `Phone: ${payload.phone}`,
-        `Travel Date: ${payload.travelDate}`,
-        `Guests: ${payload.guests}`,
-        `Preferred Tour: ${payload.tour || "Not specified"}`,
-        `Special Requests: ${payload.specialRequests || "None"}`,
-      ].join("\n");
-      openWhatsApp(message);
-      setState({ pending: false, success: "Opening WhatsApp so you can send your quote request directly.", error: "" });
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json()) as { error?: string; message?: string };
+      if (!response.ok) {
+        throw new Error(result.error ?? "Submission failed.");
+      }
+
+      setState({
+        pending: false,
+        success: result.message ?? "Quote request saved successfully.",
+        error: "",
+      });
       form.reset();
     } catch (error) {
       setState({ pending: false, success: "", error: error instanceof Error ? error.message : "Submission failed." });
@@ -103,10 +114,15 @@ export function QuoteForm() {
         <input name="tour" placeholder="Preferred Tour" className="rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
       </div>
       <textarea name="specialRequests" placeholder="Special Requests" rows={5} className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
-      <button type="submit" disabled={state.pending} className="rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white transition hover:bg-[var(--forest)] disabled:opacity-70">
-        {state.pending ? "Sending..." : "Submit"}
-      </button>
-      <p className="text-sm text-neutral-500">Your request will open in WhatsApp for a faster response from our team.</p>
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={state.pending} className="rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white transition hover:bg-[var(--forest)] disabled:opacity-70">
+          {state.pending ? "Sending..." : "Submit"}
+        </button>
+        <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[var(--forest)] px-6 py-4 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+          Prefer WhatsApp
+        </a>
+      </div>
+      <p className="text-sm text-neutral-500">Your request is stored in the CMS and can also be followed up on WhatsApp.</p>
       {state.success ? <p className="text-sm font-semibold text-[var(--forest)]">{state.success}</p> : null}
       {state.error ? <p className="text-sm font-semibold text-red-600">{state.error}</p> : null}
     </form>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { BlogPost } from "@/lib/types";
 
@@ -15,9 +16,9 @@ export function BlogCard({ post }: { post: BlogPost }) {
         </div>
         <h3 className="mt-4 text-2xl font-black">{post.title}</h3>
         <p className="mt-3 text-sm leading-7 text-neutral-600">{post.excerpt}</p>
-        <button className="mt-6 rounded-full border border-[var(--orange)] px-5 py-3 text-sm font-bold text-[var(--orange)] transition hover:bg-[var(--orange)] hover:text-white">
-          Read More
-        </button>
+        <Link href="/blog" className="mt-6 inline-flex rounded-full border border-[var(--orange)] px-5 py-3 text-sm font-bold text-[var(--orange)] transition hover:bg-[var(--orange)] hover:text-white">
+          View in Journal
+        </Link>
       </div>
     </article>
   );

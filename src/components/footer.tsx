@@ -2,16 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Icon } from "@/components/icons";
-import { navigation, siteSettings } from "@/lib/content";
+import { NavItem, SiteSettings } from "@/lib/types";
 
-export function Footer() {
+export function Footer({ navigation, siteSettings }: { navigation: NavItem[]; siteSettings: SiteSettings }) {
   return (
     <footer className="bg-[var(--forest-deep)] py-14 text-[var(--cream)]">
       <div className="container-shell grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Image
-              src="/images/logo-edited.png"
+              src={siteSettings.branding.logo}
               alt={`${siteSettings.siteName} logo`}
               width={56}
               height={56}
