@@ -5,7 +5,15 @@ import { useRef } from "react";
 import { TourCard } from "@/components/tour-card";
 import { Tour } from "@/lib/types";
 
-export function RelatedToursCarousel({ tours }: { tours: Tour[] }) {
+export function RelatedToursCarousel({
+  tours,
+  showPrice = true,
+  showHighlights = true,
+}: {
+  tours: Tour[];
+  showPrice?: boolean;
+  showHighlights?: boolean;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
 
   function scrollByAmount(direction: "prev" | "next") {
@@ -45,7 +53,7 @@ export function RelatedToursCarousel({ tours }: { tours: Tour[] }) {
       >
         {tours.map((tour) => (
           <div key={tour.slug} className="min-w-[88%] snap-start sm:min-w-[70%] md:min-w-[48%] lg:min-w-[calc((100%-3rem)/3)]">
-            <TourCard tour={tour} />
+            <TourCard tour={tour} showPrice={showPrice} showHighlights={showHighlights} />
           </div>
         ))}
       </div>

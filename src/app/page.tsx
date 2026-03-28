@@ -93,7 +93,7 @@ export default async function HomePage() {
             <SectionHeading eyebrow={String(content.toursEyebrow)} title={String(content.toursTitle)} description={String(content.toursDescription)} />
             <Link href="/tours" className="hidden rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] lg:inline-flex">View All Tours</Link>
           </div>
-          <RelatedToursCarousel tours={featuredTours} />
+          <RelatedToursCarousel tours={featuredTours} showPrice={false} showHighlights={false} />
         </div>
       </section>
       <section className="section-space relative overflow-hidden">
