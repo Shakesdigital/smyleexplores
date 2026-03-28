@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -100,6 +101,17 @@ function SaveButton({ children }: { children: string }) {
     <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
       {children}
     </button>
+  );
+}
+
+function SectionTab({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white/85 transition hover:border-white hover:bg-white/10"
+    >
+      {label}
+    </a>
   );
 }
 
@@ -226,6 +238,34 @@ function TourEditor({ tour }: { tour: Tour }) {
   );
 }
 
+function HeroEditor({
+  page,
+  label,
+  extraFields,
+}: {
+  page: CmsPage;
+  label: string;
+  extraFields?: ReactNode;
+}) {
+  return (
+    <form action={upsertPageAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+      <input type="hidden" name="slug" value={page.slug} />
+      <h3 className="text-2xl font-black text-[var(--forest-deep)]">{label}</h3>
+      <p className="mt-2 text-sm leading-7 text-neutral-600">Quick hero controls for the live page banner.</p>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Field label="Hero Image" name="heroImage" defaultValue={asString(page.content.heroImage)} />
+        <Field label="Hero Title" name="heroTitle" defaultValue={asString(page.content.heroTitle)} />
+        <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(page.content.heroSubtitle)} rows={3} />
+        <SelectField label="Status" name="status" defaultValue={page.status} options={["draft", "published"]} />
+        <Field label="Page Title" name="title" defaultValue={page.title} />
+        <Field label="Meta Image URL" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} />
+      </div>
+      {extraFields ? <div className="mt-4 grid gap-4 lg:grid-cols-2">{extraFields}</div> : null}
+      <SaveButton>Save Hero</SaveButton>
+    </form>
+  );
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -284,6 +324,17 @@ export default async function AdminPage({
           </div>
         </div>
 
+        <section className="rounded-[2rem] bg-[var(--charcoal)] px-6 py-5 shadow-soft">
+          <div className="flex flex-wrap gap-3">
+            <SectionTab href="#hero-editors" label="Hero Editors" />
+            <SectionTab href="#page-editors" label="Pages" />
+            <SectionTab href="#tour-management" label="Tours" />
+            <SectionTab href="#blog-management" label="Blog" />
+            <SectionTab href="#settings-suite" label="Settings" />
+            <SectionTab href="#submissions" label="Submissions" />
+          </div>
+        </section>
+
         {!dashboard.hasServiceRole ? (
           <div className="rounded-[2rem] border border-yellow-200 bg-yellow-50 p-6 text-sm leading-7 text-yellow-900">
             `SUPABASE_SERVICE_ROLE_KEY` is not configured, so this dashboard is running in fallback mode. Add the service role key to enable CMS writes and submission review.
@@ -307,7 +358,7 @@ export default async function AdminPage({
           ))}
         </section>
 
-        <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+        <section id="settings-suite" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Settings Suite</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Grouped public settings for branding, contact, and SEO defaults.</p>
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
@@ -328,7 +379,67 @@ export default async function AdminPage({
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+        <section id="hero-editors" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Hero Editors</h2>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Quick access to the main landing page hero images and headlines.</p>
+          <div className="mt-8 grid gap-6 xl:grid-cols-2">
+            {homePage ? (
+              <HeroEditor
+                page={homePage}
+                label="Home Hero"
+                extraFields={
+                  <>
+                    <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
+                    <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
+                    <Field label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} />
+                    <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
+                  </>
+                }
+              />
+            ) : null}
+            {aboutPage ? (
+              <HeroEditor
+                page={aboutPage}
+                label="About Hero"
+                extraFields={
+                  <>
+                    <Field label="Story Eyebrow" name="storyEyebrow" defaultValue={asString(aboutPage.content.storyEyebrow)} />
+                    <Field label="Story Title" name="storyTitle" defaultValue={asString(aboutPage.content.storyTitle)} />
+                    <Field label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} />
+                  </>
+                }
+              />
+            ) : null}
+            {toursPage ? (
+              <HeroEditor
+                page={toursPage}
+                label="Tours Hero"
+                extraFields={
+                  <>
+                    <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(toursPage.content.introEyebrow)} />
+                    <Field label="Intro Title" name="introTitle" defaultValue={asString(toursPage.content.introTitle)} />
+                    <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(toursPage.content.introDescription)} rows={3} />
+                  </>
+                }
+              />
+            ) : null}
+            {blogPage ? (
+              <HeroEditor
+                page={blogPage}
+                label="Blog Hero"
+                extraFields={
+                  <>
+                    <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(blogPage.content.introEyebrow)} />
+                    <Field label="Intro Title" name="introTitle" defaultValue={asString(blogPage.content.introTitle)} />
+                    <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(blogPage.content.introDescription)} rows={3} />
+                  </>
+                }
+              />
+            ) : null}
+          </div>
+        </section>
+
+        <section id="page-editors" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Frontend Page Editors</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">These forms reflect the sections visitors see on the site, rather than generic JSON blobs.</p>
 
@@ -468,11 +579,46 @@ export default async function AdminPage({
           ) : null}
         </section>
 
-        <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+        <section id="tour-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Destination Tour Editors</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">
-            Each tour form maps directly to the live landing page: hero slides, overview, itinerary days, highlights, packing list, booking copy, and SEO.
+            Each tour form maps directly to the live landing page: hero slides, overview, itinerary days, highlights, packing list, booking copy, and SEO. You can also create new tours here.
           </p>
+          <div className="mt-8">
+            <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Tour</h3>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">Create a new destination tour, then refine it in the same layout used by the live frontend.</p>
+            <div className="mt-4">
+              <TourEditor
+                tour={{
+                  slug: "",
+                  title: "",
+                  destination: "",
+                  shortDescription: "",
+                  duration: "",
+                  difficulty: "",
+                  minAge: "",
+                  groupSize: "",
+                  startingPrice: "",
+                  location: "",
+                  heroImage: "",
+                  heroSlides: [],
+                  highlights: [],
+                  included: [],
+                  bring: [],
+                  overview: [],
+                  itineraryDays: [],
+                  bookingTitle: "",
+                  bookingDescription: "",
+                  relatedTourSlugs: [],
+                  status: "draft",
+                  metaTitle: "",
+                  metaDescription: "",
+                  metaImageUrl: "",
+                  publishedAt: "",
+                }}
+              />
+            </div>
+          </div>
           <div className="mt-8 space-y-8">
             {dashboard.tours.map((tour) => (
               <TourEditor key={tour.slug} tour={tour} />
@@ -524,8 +670,36 @@ export default async function AdminPage({
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+        <section id="blog-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Blog Posts</h2>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Manage the blog card layout and create new blog entries with title, image, category, excerpt, publishing, and SEO.</p>
+          <form action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+            <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Blog Post</h3>
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              <Field label="Slug" name="slug" defaultValue="" />
+              <Field label="Title" name="title" defaultValue="" />
+              <SelectField label="Status" name="status" defaultValue="draft" options={["draft", "published"]} />
+              <Field label="Category" name="category" defaultValue="" />
+              <Field label="Featured Image URL" name="featured_image_url" defaultValue="" />
+              <Field label="Published At" name="published_at" defaultValue="" />
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <TextAreaField label="Excerpt" name="excerpt" defaultValue="" rows={3} />
+              <TextAreaField label="Meta Description" name="meta_description" defaultValue="" rows={3} />
+              <Field label="Meta Title" name="meta_title" defaultValue="" />
+              <Field label="Meta Image URL" name="meta_image_url" defaultValue="" />
+            </div>
+            <div className="mt-4">
+              <TextAreaField
+                label="Content JSON"
+                name="content"
+                defaultValue={prettyJson({ paragraphs: [], heroImage: "", ctaLabel: "", ctaHref: "" })}
+                rows={10}
+                mono
+              />
+            </div>
+            <SaveButton>Create Blog Post</SaveButton>
+          </form>
           <div className="mt-8 space-y-8">
             {dashboard.blogPosts.map((post) => (
               <form key={post.slug} action={upsertBlogPostAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
