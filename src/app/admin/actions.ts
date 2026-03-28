@@ -34,6 +34,137 @@ function parseJsonField(value: FormDataEntryValue | null, fieldName: string) {
   }
 }
 
+function collectLinesByPrefix(formData: FormData, prefix: string) {
+  const entries = Array.from(formData.entries())
+    .filter(([key, value]) => key.startsWith(prefix) && String(value).trim().length > 0)
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  return entries.map(([, value]) => String(value).trim());
+}
+
+function collectTourHeroSlides(formData: FormData) {
+  const indexes = new Set<number>();
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("slideTitle_") || !String(value).trim()) continue;
+    indexes.add(Number(key.replace("slideTitle_", "")));
+  }
+
+  return [...indexes]
+    .sort((left, right) => left - right)
+    .map((index) => ({
+      image: String(formData.get(`slideImage_${index}`) ?? "").trim(),
+      title: String(formData.get(`slideTitle_${index}`) ?? "").trim(),
+      subtitle: String(formData.get(`slideSubtitle_${index}`) ?? "").trim(),
+    }))
+    .filter((slide) => slide.image && slide.title);
+}
+
+function collectTourItineraryDays(formData: FormData) {
+  const indexes = new Set<number>();
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("dayTitle_") || !String(value).trim()) continue;
+    indexes.add(Number(key.replace("dayTitle_", "")));
+  }
+
+  return [...indexes]
+    .sort((left, right) => left - right)
+    .map((index) => ({
+      dayLabel: String(formData.get(`dayLabel_${index}`) ?? "").trim(),
+      title: String(formData.get(`dayTitle_${index}`) ?? "").trim(),
+      description: String(formData.get(`dayDescription_${index}`) ?? "").trim(),
+      activities: parseLines(formData.get(`dayActivities_${index}`)),
+      image: String(formData.get(`dayImage_${index}`) ?? "").trim(),
+    }))
+    .filter((day) => day.dayLabel && day.title);
+}
+
+function buildPageContent(formData: FormData, slug: string) {
+  if (formData.has("content")) {
+    return parseJsonField(formData.get("content"), "page content");
+  }
+
+  switch (slug) {
+    case "home":
+      return {
+        heroImage: String(formData.get("heroImage") ?? ""),
+        heroTitle: String(formData.get("heroTitle") ?? ""),
+        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        introEyebrow: String(formData.get("introEyebrow") ?? ""),
+        introTitle: String(formData.get("introTitle") ?? ""),
+        introParagraphs: collectLinesByPrefix(formData, "introParagraph_"),
+        featureImage: String(formData.get("featureImage") ?? ""),
+        whyEyebrow: String(formData.get("whyEyebrow") ?? ""),
+        whyTitle: String(formData.get("whyTitle") ?? ""),
+        whyDescription: String(formData.get("whyDescription") ?? ""),
+        whyChooseUsItems: [1, 2, 3]
+          .map((index) => ({
+            title: String(formData.get(`whyItemTitle_${index}`) ?? "").trim(),
+            description: String(formData.get(`whyItemDescription_${index}`) ?? "").trim(),
+            icon: String(formData.get(`whyItemIcon_${index}`) ?? "").trim(),
+          }))
+          .filter((item) => item.title && item.description),
+        toursEyebrow: String(formData.get("toursEyebrow") ?? ""),
+        toursTitle: String(formData.get("toursTitle") ?? ""),
+        toursDescription: String(formData.get("toursDescription") ?? ""),
+        quoteImage: String(formData.get("quoteImage") ?? ""),
+        quoteText: String(formData.get("quoteText") ?? ""),
+        testimonialsEyebrow: String(formData.get("testimonialsEyebrow") ?? ""),
+        testimonialsTitle: String(formData.get("testimonialsTitle") ?? ""),
+        testimonialsDescription: String(formData.get("testimonialsDescription") ?? ""),
+        ctaEyebrow: String(formData.get("ctaEyebrow") ?? ""),
+        ctaTitle: String(formData.get("ctaTitle") ?? ""),
+        ctaDescription: String(formData.get("ctaDescription") ?? ""),
+      };
+    case "about":
+      return {
+        heroImage: String(formData.get("heroImage") ?? ""),
+        heroTitle: String(formData.get("heroTitle") ?? ""),
+        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        storyEyebrow: String(formData.get("storyEyebrow") ?? ""),
+        storyTitle: String(formData.get("storyTitle") ?? ""),
+        storyImage: String(formData.get("storyImage") ?? ""),
+        storyParagraphs: collectLinesByPrefix(formData, "storyParagraph_"),
+        missionEyebrow: String(formData.get("missionEyebrow") ?? ""),
+        missionQuote: String(formData.get("missionQuote") ?? ""),
+        valuesEyebrow: String(formData.get("valuesEyebrow") ?? ""),
+        valuesTitle: String(formData.get("valuesTitle") ?? ""),
+        ctaTitle: String(formData.get("ctaTitle") ?? ""),
+      };
+    case "tours":
+      return {
+        heroImage: String(formData.get("heroImage") ?? ""),
+        heroTitle: String(formData.get("heroTitle") ?? ""),
+        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        introEyebrow: String(formData.get("introEyebrow") ?? ""),
+        introTitle: String(formData.get("introTitle") ?? ""),
+        introDescription: String(formData.get("introDescription") ?? ""),
+      };
+    case "blog":
+      return {
+        heroImage: String(formData.get("heroImage") ?? ""),
+        heroTitle: String(formData.get("heroTitle") ?? ""),
+        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        introEyebrow: String(formData.get("introEyebrow") ?? ""),
+        introTitle: String(formData.get("introTitle") ?? ""),
+        introDescription: String(formData.get("introDescription") ?? ""),
+      };
+    case "contact":
+      return {
+        heroImage: String(formData.get("heroImage") ?? ""),
+        heroTitle: String(formData.get("heroTitle") ?? ""),
+        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        introEyebrow: String(formData.get("introEyebrow") ?? ""),
+        introTitle: String(formData.get("introTitle") ?? ""),
+        quoteEyebrow: String(formData.get("quoteEyebrow") ?? ""),
+        quoteTitle: String(formData.get("quoteTitle") ?? ""),
+      };
+    default:
+      return {};
+  }
+}
+
 async function requireAdminSession() {
   const valid = await isAdminSessionValid();
   if (!valid) {
@@ -90,12 +221,15 @@ export async function upsertSettingAction(formData: FormData) {
       value = parseLines(formData.get("value"));
     }
 
-    const { error } = await client.from("settings").upsert({
-      group_key: groupKey,
-      key,
-      value,
-      is_public: isPublic,
-    }, { onConflict: "key" });
+    const { error } = await client.from("settings").upsert(
+      {
+        group_key: groupKey,
+        key,
+        value,
+        is_public: isPublic,
+      },
+      { onConflict: "key" },
+    );
 
     if (error) throw new Error(error.message);
 
@@ -115,18 +249,21 @@ export async function upsertPageAction(formData: FormData) {
 
     const slug = String(formData.get("slug") ?? "");
 
-    const { error } = await client.from("pages").upsert({
-      slug,
-      title: String(formData.get("title") ?? ""),
-      excerpt: optionalValue(formData.get("excerpt")),
-      status: String(formData.get("status") ?? "draft"),
-      content: parseJsonField(formData.get("content"), "page content"),
-      featured_image_url: optionalValue(formData.get("featured_image_url")),
-      meta_title: optionalValue(formData.get("meta_title")),
-      meta_description: optionalValue(formData.get("meta_description")),
-      meta_image_url: optionalValue(formData.get("meta_image_url")),
-      published_at: optionalValue(formData.get("published_at")),
-    }, { onConflict: "slug" });
+    const { error } = await client.from("pages").upsert(
+      {
+        slug,
+        title: String(formData.get("title") ?? ""),
+        excerpt: optionalValue(formData.get("excerpt")),
+        status: String(formData.get("status") ?? "draft"),
+        content: buildPageContent(formData, slug),
+        featured_image_url: optionalValue(formData.get("featured_image_url")),
+        meta_title: optionalValue(formData.get("meta_title")),
+        meta_description: optionalValue(formData.get("meta_description")),
+        meta_image_url: optionalValue(formData.get("meta_image_url")),
+        published_at: optionalValue(formData.get("published_at")),
+      },
+      { onConflict: "slug" },
+    );
 
     if (error) throw new Error(error.message);
 
@@ -134,6 +271,60 @@ export async function upsertPageAction(formData: FormData) {
     redirectWithMessage("success", `Saved page ${slug}.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save page.";
+    redirectWithMessage("error", message);
+  }
+}
+
+export async function upsertTestimonialAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = optionalValue(formData.get("id"));
+    const payload = {
+      name: String(formData.get("name") ?? ""),
+      title: optionalValue(formData.get("title")),
+      quote: String(formData.get("quote") ?? ""),
+      order_column: Number(String(formData.get("order_column") ?? "0")) || 0,
+    };
+
+    const query = id ? client.from("testimonials").update(payload).eq("id", id) : client.from("testimonials").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    redirectWithMessage("success", `Saved testimonial for ${payload.name}.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save testimonial.";
+    redirectWithMessage("error", message);
+  }
+}
+
+export async function upsertCompanyValueAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = optionalValue(formData.get("id"));
+    const payload = {
+      title: String(formData.get("title") ?? ""),
+      description: optionalValue(formData.get("description")),
+      icon: optionalValue(formData.get("icon")),
+      order_column: Number(String(formData.get("order_column") ?? "0")) || 0,
+    };
+
+    const query = id ? client.from("company_values").update(payload).eq("id", id) : client.from("company_values").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/about");
+    revalidatePath("/admin");
+    redirectWithMessage("success", `Saved value ${payload.title}.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save company value.";
     redirectWithMessage("error", message);
   }
 }
@@ -146,27 +337,36 @@ export async function upsertTourAction(formData: FormData) {
 
     const slug = String(formData.get("slug") ?? "");
 
-    const { error } = await client.from("tours").upsert({
-      slug,
-      title: String(formData.get("title") ?? ""),
-      summary: optionalValue(formData.get("summary")),
-      description: parseLines(formData.get("description")),
-      duration: String(formData.get("duration") ?? ""),
-      difficulty: String(formData.get("difficulty") ?? ""),
-      minimum_age: String(formData.get("minimum_age") ?? ""),
-      group_size: optionalValue(formData.get("group_size")),
-      starting_price: String(formData.get("starting_price") ?? ""),
-      location: String(formData.get("location") ?? "Jinja, Uganda"),
-      hero_image_url: optionalValue(formData.get("hero_image_url")),
-      highlights: parseLines(formData.get("highlights")),
-      included: parseLines(formData.get("included")),
-      what_to_bring: parseLines(formData.get("what_to_bring")),
-      status: String(formData.get("status") ?? "draft"),
-      meta_title: optionalValue(formData.get("meta_title")),
-      meta_description: optionalValue(formData.get("meta_description")),
-      meta_image_url: optionalValue(formData.get("meta_image_url")),
-      published_at: optionalValue(formData.get("published_at")),
-    }, { onConflict: "slug" });
+    const { error } = await client.from("tours").upsert(
+      {
+        slug,
+        title: String(formData.get("title") ?? ""),
+        summary: optionalValue(formData.get("summary")),
+        description: collectLinesByPrefix(formData, "overview_"),
+        duration: String(formData.get("duration") ?? ""),
+        difficulty: String(formData.get("difficulty") ?? ""),
+        minimum_age: String(formData.get("minimum_age") ?? ""),
+        group_size: optionalValue(formData.get("group_size")),
+        starting_price: String(formData.get("starting_price") ?? ""),
+        location: String(formData.get("location") ?? "Uganda"),
+        destination: String(formData.get("destination") ?? "Uganda"),
+        hero_image_url: optionalValue(formData.get("hero_image_url")),
+        hero_slides: collectTourHeroSlides(formData),
+        highlights: parseLines(formData.get("highlights")),
+        itinerary_days: collectTourItineraryDays(formData),
+        included: parseLines(formData.get("included")),
+        what_to_bring: parseLines(formData.get("what_to_bring")),
+        booking_title: optionalValue(formData.get("booking_title")),
+        booking_description: optionalValue(formData.get("booking_description")),
+        related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
+        status: String(formData.get("status") ?? "draft"),
+        meta_title: optionalValue(formData.get("meta_title")),
+        meta_description: optionalValue(formData.get("meta_description")),
+        meta_image_url: optionalValue(formData.get("meta_image_url")),
+        published_at: optionalValue(formData.get("published_at")),
+      },
+      { onConflict: "slug" },
+    );
 
     if (error) throw new Error(error.message);
 
@@ -187,19 +387,22 @@ export async function upsertBlogPostAction(formData: FormData) {
 
     const slug = String(formData.get("slug") ?? "");
 
-    const { error } = await client.from("blog_posts").upsert({
-      slug,
-      title: String(formData.get("title") ?? ""),
-      excerpt: optionalValue(formData.get("excerpt")),
-      category: optionalValue(formData.get("category")),
-      featured_image_url: optionalValue(formData.get("featured_image_url")),
-      status: String(formData.get("status") ?? "draft"),
-      content: parseJsonField(formData.get("content"), "blog content"),
-      meta_title: optionalValue(formData.get("meta_title")),
-      meta_description: optionalValue(formData.get("meta_description")),
-      meta_image_url: optionalValue(formData.get("meta_image_url")),
-      published_at: optionalValue(formData.get("published_at")),
-    }, { onConflict: "slug" });
+    const { error } = await client.from("blog_posts").upsert(
+      {
+        slug,
+        title: String(formData.get("title") ?? ""),
+        excerpt: optionalValue(formData.get("excerpt")),
+        category: optionalValue(formData.get("category")),
+        featured_image_url: optionalValue(formData.get("featured_image_url")),
+        status: String(formData.get("status") ?? "draft"),
+        content: parseJsonField(formData.get("content"), "blog content"),
+        meta_title: optionalValue(formData.get("meta_title")),
+        meta_description: optionalValue(formData.get("meta_description")),
+        meta_image_url: optionalValue(formData.get("meta_image_url")),
+        published_at: optionalValue(formData.get("published_at")),
+      },
+      { onConflict: "slug" },
+    );
 
     if (error) throw new Error(error.message);
 

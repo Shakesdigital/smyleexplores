@@ -43,10 +43,25 @@ export type CmsPage = {
   publishedAt?: string | null;
 };
 
+export type TourHeroSlide = {
+  image: string;
+  title: string;
+  subtitle: string;
+};
+
+export type TourItineraryDay = {
+  dayLabel: string;
+  title: string;
+  description: string;
+  activities: string[];
+  image?: string;
+};
+
 export type Tour = {
   id?: string;
   slug: string;
   title: string;
+  destination: string;
   shortDescription: string;
   duration: string;
   difficulty: string;
@@ -55,10 +70,14 @@ export type Tour = {
   startingPrice: string;
   location: string;
   heroImage: string;
+  heroSlides: TourHeroSlide[];
   highlights: string[];
   included: string[];
   bring: string[];
   overview: string[];
+  itineraryDays: TourItineraryDay[];
+  bookingTitle: string;
+  bookingDescription: string;
   relatedTourSlugs: string[];
   status?: string;
   metaTitle?: string | null;

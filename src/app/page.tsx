@@ -10,20 +10,21 @@ import { getFeaturedTours, getPageContent, getStaticFallbackContent, getTestimon
 const homeFallbackContent = {
   heroImage: "/images/home-hero-rafting.jpeg",
   heroTitle: "Explore Uganda. Feel Alive.",
-  heroSubtitle: "Curated Nile adventures, authentic local encounters, and premium travel experiences crafted from the heart of Jinja.",
+  heroSubtitle: "Destination-led Uganda tours with waterfall escapes, wildlife safaris, primate journeys, and immersive stays in Jinja.",
   introEyebrow: "Pearl of Africa",
-  introTitle: "Travel deeper into Uganda with a team that knows how to make every moment count.",
+  introTitle: "Travel deeper into Uganda with itineraries designed around the places that make the country unforgettable.",
   introParagraphs: [
-    "Smyle Explores creates unforgettable journeys across Uganda, combining the drama of the Nile with the warmth of local hospitality.",
-    "Based in Jinja, we help travelers experience the Pearl of Africa through safe adventures, authentic cultural moments, and carefully handled details that make the trip feel effortless.",
+    "Smyle Explores creates unforgettable journeys across Uganda, combining strong destination planning with the warmth of local hospitality.",
+    "From Sipi Falls and Bwindi to Queen Elizabeth, Lake Mburo, and Jinja, every itinerary is built to feel clear, personal, and easy to act on.",
   ],
   featureImage: "/images/home-pearl-of-africa.jpeg",
   whyEyebrow: "Why Choose Us",
-  whyTitle: "Adventure with trust, local depth, and exceptional care.",
-  whyDescription: "We design experiences that feel premium without losing the honesty and spirit of Uganda.",
+  whyTitle: "Destination planning with trust, local depth, and exceptional care.",
+  whyDescription: "We design Uganda experiences that feel premium without losing the honesty and spirit of the places themselves.",
+  whyChooseUsItems: getStaticFallbackContent().whyChooseUs,
   toursEyebrow: "Featured Tours",
-  toursTitle: "Signature experiences on and around the Nile.",
-  toursDescription: "A handpicked preview of the adventures guests ask for most.",
+  toursTitle: "Signature Uganda itineraries.",
+  toursDescription: "A handpicked preview of destination-based tours guests can browse, compare, and book from the CMS-driven frontend.",
   quoteImage: "/images/home-quote-feature.jpeg",
   quoteText: getStaticFallbackContent().homeQuote,
   testimonialsEyebrow: "Testimonials",
@@ -41,6 +42,10 @@ export default async function HomePage() {
     getTestimonials(),
   ]);
   const { whyChooseUs } = getStaticFallbackContent();
+  const whyChooseUsItems =
+    Array.isArray(content.whyChooseUsItems) && content.whyChooseUsItems.length
+      ? (content.whyChooseUsItems as { title: string; description: string; icon: string }[])
+      : whyChooseUs;
 
   return (
     <main>
@@ -72,7 +77,7 @@ export default async function HomePage() {
         <div className="container-shell">
           <SectionHeading eyebrow={String(content.whyEyebrow)} title={String(content.whyTitle)} description={String(content.whyDescription)} />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {whyChooseUs.map((item) => (
+            {whyChooseUsItems.map((item) => (
               <article key={item.title} className="card-lift rounded-[2rem] border border-black/5 bg-white p-8">
                 <div className="inline-flex rounded-2xl bg-[var(--forest)]/10 p-4 text-[var(--forest)]"><Icon name={item.icon} className="h-7 w-7" /></div>
                 <h3 className="mt-6 text-2xl font-black">{item.title}</h3>

@@ -14,7 +14,19 @@ import {
   whyChooseUs,
 } from "@/lib/content";
 import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase";
-import { BlogPost, CmsPage, NavItem, SiteSettings, SubmissionRecord, TeamMember, Testimonial, Tour, ValueItem } from "@/lib/types";
+import {
+  BlogPost,
+  CmsPage,
+  NavItem,
+  SiteSettings,
+  SubmissionRecord,
+  TeamMember,
+  Testimonial,
+  Tour,
+  TourHeroSlide,
+  TourItineraryDay,
+  ValueItem,
+} from "@/lib/types";
 
 type SettingRow = {
   group_key: string;
@@ -49,10 +61,16 @@ type TourRow = {
   group_size: string | null;
   starting_price: string;
   location: string;
+  destination: string | null;
   hero_image_url: string | null;
+  hero_slides: unknown;
   highlights: unknown;
+  itinerary_days: unknown;
   included: unknown;
   what_to_bring: unknown;
+  booking_title: string | null;
+  booking_description: string | null;
+  related_tour_slugs: unknown;
   status: string;
   meta_title: string | null;
   meta_description: string | null;
@@ -125,20 +143,34 @@ type QuoteRequestRow = {
   created_at: string;
 };
 
+const TOUR_SELECT =
+  "id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,destination,hero_image_url,hero_slides,highlights,itinerary_days,included,what_to_bring,booking_title,booking_description,related_tour_slugs,status,meta_title,meta_description,meta_image_url,published_at";
+
+const LEGACY_TOUR_SELECT =
+  "id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at";
+
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
 }
 
 function asStringArray(value: unknown, fallback: string[] = []) {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  if (!Array.isArray(value)) {
+    return fallback;
   }
 
-  return fallback;
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
 function asObject(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function asObjectArray<T extends Record<string, unknown>>(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is T => Boolean(item) && typeof item === "object" && !Array.isArray(item));
 }
 
 function formatDisplayDate(value: string | null | undefined) {
@@ -230,30 +262,86 @@ function mapSettings(rows: SettingRow[]): SiteSettings {
   return settings;
 }
 
+function mapTourHeroSlides(value: unknown, fallback: TourHeroSlide[]) {
+  const slides = asObjectArray<Record<string, unknown>>(value)
+    .map((item) => ({
+      image: asString(item.image),
+      title: asString(item.title),
+      subtitle: asString(item.subtitle),
+    }))
+    .filter((item) => item.image && item.title);
+
+  return slides.length ? slides : fallback;
+}
+
+function mapTourItineraryDays(value: unknown, fallback: TourItineraryDay[]) {
+  const days = asObjectArray<Record<string, unknown>>(value)
+    .map((item) => ({
+      dayLabel: asString(item.dayLabel),
+      title: asString(item.title),
+      description: asString(item.description),
+      activities: asStringArray(item.activities),
+      image: asString(item.image),
+    }))
+    .filter((item) => item.dayLabel && item.title);
+
+  return days.length ? days : fallback;
+}
+
 function mapTour(row: TourRow): Tour {
+  const fallbackTour = fallbackTours.find((item) => item.slug === row.slug);
+
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    shortDescription: row.summary ?? "",
+    destination: asString(row.destination, fallbackTour?.destination ?? "Uganda"),
+    shortDescription: row.summary ?? fallbackTour?.shortDescription ?? "",
     duration: row.duration,
     difficulty: row.difficulty,
     minAge: row.minimum_age,
-    groupSize: row.group_size ?? "",
+    groupSize: row.group_size ?? fallbackTour?.groupSize ?? "",
     startingPrice: row.starting_price,
     location: row.location,
-    heroImage: row.hero_image_url ?? "/images/home-hero-rafting.jpeg",
-    highlights: asStringArray(row.highlights),
-    included: asStringArray(row.included),
-    bring: asStringArray(row.what_to_bring),
-    overview: asStringArray(row.description),
-    relatedTourSlugs: [],
+    heroImage: row.hero_image_url ?? fallbackTour?.heroImage ?? "/images/home-hero-rafting.jpeg",
+    heroSlides: mapTourHeroSlides(row.hero_slides, fallbackTour?.heroSlides ?? []),
+    highlights: asStringArray(row.highlights, fallbackTour?.highlights ?? []),
+    included: asStringArray(row.included, fallbackTour?.included ?? []),
+    bring: asStringArray(row.what_to_bring, fallbackTour?.bring ?? []),
+    overview: asStringArray(row.description, fallbackTour?.overview ?? []),
+    itineraryDays: mapTourItineraryDays(row.itinerary_days, fallbackTour?.itineraryDays ?? []),
+    bookingTitle: asString(row.booking_title, fallbackTour?.bookingTitle ?? "Request a Quote"),
+    bookingDescription: asString(
+      row.booking_description,
+      fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs.",
+    ),
+    relatedTourSlugs: asStringArray(row.related_tour_slugs, fallbackTour?.relatedTourSlugs ?? []),
     status: row.status,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
     metaImageUrl: row.meta_image_url,
     publishedAt: row.published_at,
   };
+}
+
+async function fetchPublishedTourRows(client: NonNullable<ReturnType<typeof createSupabaseServerClient>>) {
+  const result = await client.from("tours").select(TOUR_SELECT).eq("status", "published").order("published_at", { ascending: false });
+  if (!result.error) {
+    return (result.data ?? []) as TourRow[];
+  }
+
+  const legacy = await client.from("tours").select(LEGACY_TOUR_SELECT).eq("status", "published").order("published_at", { ascending: false });
+  return (legacy.data ?? []) as TourRow[];
+}
+
+async function fetchAdminTourRows(client: NonNullable<ReturnType<typeof createSupabaseServiceRoleClient>>) {
+  const result = await client.from("tours").select(TOUR_SELECT).order("title", { ascending: true });
+  if (!result.error) {
+    return (result.data ?? []) as TourRow[];
+  }
+
+  const legacy = await client.from("tours").select(LEGACY_TOUR_SELECT).order("title", { ascending: true });
+  return (legacy.data ?? []) as TourRow[];
 }
 
 function mapBlogPost(row: BlogRow): BlogPost {
@@ -294,11 +382,7 @@ export const getSiteSettings = cache(async () => {
   const client = createSupabaseServerClient();
   if (!client) return mapSettings([]);
 
-  const { data } = await client
-    .from("settings")
-    .select("group_key,key,value,is_public")
-    .eq("is_public", true);
-
+  const { data } = await client.from("settings").select("group_key,key,value,is_public").eq("is_public", true);
   return mapSettings((data ?? []) as SettingRow[]);
 });
 
@@ -313,7 +397,6 @@ export const getNavigation = cache(async (): Promise<NavItem[]> => {
     .order("order_column", { ascending: true });
 
   if (!data?.length) return fallbackNavigation;
-
   return data as NavigationRow[];
 });
 
@@ -347,21 +430,9 @@ export const getTours = cache(async () => {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTours;
 
-  const { data } = await client
-    .from("tours")
-    .select("id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
-
-  if (!data?.length) return fallbackTours;
-
-  const rows = (data as TourRow[]).map(mapTour);
-  const fallbackMap = new Map(fallbackTours.map((tour) => [tour.slug, tour.relatedTourSlugs]));
-  for (const row of rows) {
-    row.relatedTourSlugs = fallbackMap.get(row.slug) ?? [];
-  }
-
-  return rows;
+  const rows = await fetchPublishedTourRows(client);
+  if (!rows.length) return fallbackTours;
+  return rows.map(mapTour);
 });
 
 export async function getTourBySlug(slug: string) {
@@ -385,7 +456,6 @@ export const getBlogPosts = cache(async () => {
     .order("published_at", { ascending: false });
 
   if (!data?.length) return fallbackBlogPosts;
-
   return (data as BlogRow[]).map(mapBlogPost);
 });
 
@@ -393,11 +463,7 @@ export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTestimonials;
 
-  const { data } = await client
-    .from("testimonials")
-    .select("id,name,title,quote")
-    .order("order_column", { ascending: true });
-
+  const { data } = await client.from("testimonials").select("id,name,title,quote").order("order_column", { ascending: true });
   if (!data?.length) return fallbackTestimonials;
 
   return (data as TestimonialRow[]).map((row) => ({
@@ -432,11 +498,7 @@ export const getCompanyValues = cache(async (): Promise<ValueItem[]> => {
   const client = createSupabaseServerClient();
   if (!client) return fallbackValueItems;
 
-  const { data } = await client
-    .from("company_values")
-    .select("id,title,description,icon")
-    .order("order_column", { ascending: true });
-
+  const { data } = await client.from("company_values").select("id,title,description,icon").order("order_column", { ascending: true });
   if (!data?.length) return fallbackValueItems;
 
   return (data as ValueRow[]).map((row) => ({
@@ -469,6 +531,8 @@ export async function getAdminDashboardData() {
       pages: [] as CmsPage[],
       tours: publicTours,
       blogPosts: publicBlogPosts,
+      testimonials: fallbackTestimonials,
+      companyValues: fallbackValueItems,
       submissions: [] as SubmissionRecord[],
       stats: [
         { label: "Settings", value: 16 },
@@ -481,17 +545,35 @@ export async function getAdminDashboardData() {
     };
   }
 
-  const [pagesResult, toursResult, blogResult, contactResult, quoteResult] = await Promise.all([
+  const [pagesResult, blogResult, testimonialsResult, valuesResult, contactResult, quoteResult] = await Promise.all([
     client.from("pages").select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at").order("slug", { ascending: true }),
-    client.from("tours").select("id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at").order("title", { ascending: true }),
     client.from("blog_posts").select("id,slug,title,excerpt,content,category,featured_image_url,status,meta_title,meta_description,meta_image_url,published_at").order("published_at", { ascending: false }),
+    client.from("testimonials").select("id,name,title,quote").order("order_column", { ascending: true }),
+    client.from("company_values").select("id,title,description,icon").order("order_column", { ascending: true }),
     client.from("contact_submissions").select("id,name,email,phone,subject,message,status,created_at").order("created_at", { ascending: false }).limit(10),
     client.from("quote_requests").select("id,name,email,phone,guests,preferred_tour,special_requests,status,created_at").order("created_at", { ascending: false }).limit(10),
   ]);
+  const toursRows = await fetchAdminTourRows(client);
 
   const pages = ((pagesResult.data ?? []) as PageRow[]).map(mapPage);
-  const tours = ((toursResult.data ?? []) as TourRow[]).map(mapTour);
+  const tours = toursRows.map(mapTour);
   const blogPosts = ((blogResult.data ?? []) as BlogRow[]).map(mapBlogPost);
+  const testimonials = testimonialsResult.data?.length
+    ? (testimonialsResult.data as TestimonialRow[]).map((row) => ({
+        id: row.id,
+        name: row.name,
+        title: row.title ?? "",
+        quote: row.quote,
+      }))
+    : fallbackTestimonials;
+  const companyValues = valuesResult.data?.length
+    ? (valuesResult.data as ValueRow[]).map((row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description ?? "",
+        icon: row.icon ?? "spark",
+      }))
+    : fallbackValueItems;
   const contactSubmissions = ((contactResult.data ?? []) as ContactSubmissionRow[]).map((row) => ({
     id: row.id,
     type: "contact" as const,
@@ -519,6 +601,8 @@ export async function getAdminDashboardData() {
     pages,
     tours,
     blogPosts,
+    testimonials,
+    companyValues,
     submissions: [...contactSubmissions, ...quoteRequests].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     stats: [
       { label: "Settings", value: 16 },

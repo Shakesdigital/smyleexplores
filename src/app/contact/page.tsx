@@ -10,7 +10,7 @@ const contactFallbackContent = {
   heroTitle: "Get in Touch",
   heroSubtitle: "Tell us what kind of Uganda experience you're looking for and we'll help shape the journey.",
   introEyebrow: "Contact Us",
-  introTitle: "Plan your adventure with a local team that knows Jinja well.",
+  introTitle: "Plan your Uganda itinerary with a local team that understands destinations across the country.",
   quoteEyebrow: "Request a Quote",
   quoteTitle: "Share your dates and travel ideas.",
 };

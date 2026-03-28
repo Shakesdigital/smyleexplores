@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { aboutStory, whyChooseUs } from "@/lib/content";
 import { getAdminDashboardData } from "@/lib/cms";
 import { hasCmsAdminPassword, isAdminSessionValid } from "@/lib/admin-session";
+import { CmsPage, Tour } from "@/lib/types";
 
 import {
   logoutAdminAction,
   updateSubmissionStatusAction,
   upsertBlogPostAction,
+  upsertCompanyValueAction,
   upsertPageAction,
   upsertSettingAction,
+  upsertTestimonialAction,
   upsertTourAction,
 } from "./actions";
 
@@ -19,21 +23,224 @@ function prettyJson(value: Record<string, unknown>) {
   return JSON.stringify(value, null, 2);
 }
 
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asStringArray(value: unknown, fallback: string[] = []) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : fallback;
+}
+
+function asObjectArray<T extends Record<string, unknown>>(value: unknown, fallback: T[] = []) {
+  return Array.isArray(value) ? value.filter((item): item is T => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : fallback;
+}
+
+function Field({ label, name, defaultValue }: { label: string; name: string; defaultValue?: string }) {
+  return (
+    <label className="block text-sm font-semibold text-neutral-700">
+      {label}
+      <input name={name} defaultValue={defaultValue ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
+    </label>
+  );
+}
+
+function TextAreaField({
+  label,
+  name,
+  defaultValue,
+  rows = 4,
+  mono = false,
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  rows?: number;
+  mono?: boolean;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-neutral-700">
+      {label}
+      <textarea
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        rows={rows}
+        className={`mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 ${mono ? "font-mono text-sm" : ""}`}
+      />
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  defaultValue,
+  options,
+}: {
+  label: string;
+  name: string;
+  defaultValue: string;
+  options: string[];
+}) {
+  return (
+    <label className="block text-sm font-semibold text-neutral-700">
+      {label}
+      <select name={name} defaultValue={defaultValue} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3">
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function SaveButton({ children }: { children: string }) {
+  return (
+    <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
+      {children}
+    </button>
+  );
+}
+
+function BasePageFields({ page }: { page: CmsPage }) {
+  return (
+    <>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Field label="Page Title" name="title" defaultValue={page.title} />
+        <SelectField label="Status" name="status" defaultValue={page.status} options={["draft", "published"]} />
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Field label="Featured Image URL" name="featured_image_url" defaultValue={page.featuredImageUrl ?? ""} />
+        <Field label="Meta Title" name="meta_title" defaultValue={page.metaTitle ?? ""} />
+        <Field label="Meta Image URL" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} />
+      </div>
+      <TextAreaField label="Meta Description" name="meta_description" defaultValue={page.metaDescription ?? ""} rows={3} />
+    </>
+  );
+}
+
+function TourEditor({ tour }: { tour: Tour }) {
+  const slides = [...tour.heroSlides];
+  while (slides.length < 4) slides.push({ image: "", title: "", subtitle: "" });
+
+  const itineraryDays = [...tour.itineraryDays];
+  while (itineraryDays.length < 5) {
+    const index = itineraryDays.length + 1;
+    itineraryDays.push({ dayLabel: `Day ${index}`, title: "", description: "", activities: [], image: "" });
+  }
+
+  const overview = [...tour.overview];
+  while (overview.length < 3) overview.push("");
+
+  return (
+    <form action={upsertTourAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Field label="Slug" name="slug" defaultValue={tour.slug} />
+        <Field label="Title" name="title" defaultValue={tour.title} />
+        <SelectField label="Status" name="status" defaultValue={tour.status ?? "published"} options={["draft", "published"]} />
+        <Field label="Destination" name="destination" defaultValue={tour.destination} />
+        <Field label="Duration" name="duration" defaultValue={tour.duration} />
+        <Field label="Pace / Difficulty" name="difficulty" defaultValue={tour.difficulty} />
+        <Field label="Minimum Age" name="minimum_age" defaultValue={tour.minAge} />
+        <Field label="Group Size" name="group_size" defaultValue={tour.groupSize} />
+        <Field label="Starting Price" name="starting_price" defaultValue={tour.startingPrice} />
+        <Field label="Location" name="location" defaultValue={tour.location} />
+        <Field label="Hero Fallback Image" name="hero_image_url" defaultValue={tour.heroImage} />
+        <Field label="Published At" name="published_at" defaultValue={tour.publishedAt ?? ""} />
+      </div>
+
+      <TextAreaField label="Short Description" name="summary" defaultValue={tour.shortDescription} rows={3} />
+
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <h3 className="text-xl font-black text-[var(--forest-deep)]">Overview Paragraphs</h3>
+        <p className="mt-2 text-sm leading-7 text-neutral-600">These paragraphs map to the top descriptive copy on the landing page.</p>
+        <div className="mt-4 grid gap-4">
+          {overview.map((paragraph, index) => (
+            <TextAreaField key={`${tour.slug}-overview-${index}`} label={`Overview Paragraph ${index + 1}`} name={`overview_${index}`} defaultValue={paragraph} rows={3} />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <h3 className="text-xl font-black text-[var(--forest-deep)]">Hero Slides</h3>
+        <p className="mt-2 text-sm leading-7 text-neutral-600">These cards map directly to the rotating hero slides on the tour page.</p>
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          {slides.map((slide, index) => (
+            <div key={`${tour.slug}-slide-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
+              <Field label={`Slide ${index + 1} Image`} name={`slideImage_${index + 1}`} defaultValue={slide.image} />
+              <div className="mt-3">
+                <Field label={`Slide ${index + 1} Title`} name={`slideTitle_${index + 1}`} defaultValue={slide.title} />
+              </div>
+              <div className="mt-3">
+                <TextAreaField label={`Slide ${index + 1} Subtitle`} name={`slideSubtitle_${index + 1}`} defaultValue={slide.subtitle} rows={3} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <h3 className="text-xl font-black text-[var(--forest-deep)]">Itinerary Days</h3>
+        <p className="mt-2 text-sm leading-7 text-neutral-600">Each itinerary day renders as its own frontend section with title, description, activities, and image.</p>
+        <div className="mt-4 space-y-5">
+          {itineraryDays.map((day, index) => (
+            <div key={`${tour.slug}-day-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
+              <div className="grid gap-4 lg:grid-cols-3">
+                <Field label="Day Label" name={`dayLabel_${index + 1}`} defaultValue={day.dayLabel} />
+                <Field label="Day Title" name={`dayTitle_${index + 1}`} defaultValue={day.title} />
+                <Field label="Day Image" name={`dayImage_${index + 1}`} defaultValue={day.image} />
+              </div>
+              <div className="mt-4">
+                <TextAreaField label="Day Description" name={`dayDescription_${index + 1}`} defaultValue={day.description} rows={3} />
+              </div>
+              <div className="mt-4">
+                <TextAreaField label="Activities" name={`dayActivities_${index + 1}`} defaultValue={day.activities.join("\n")} rows={4} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <TextAreaField label="Highlights" name="highlights" defaultValue={tour.highlights.join("\n")} rows={6} />
+        <TextAreaField label="Included" name="included" defaultValue={tour.included.join("\n")} rows={6} />
+        <TextAreaField label="What to Bring" name="what_to_bring" defaultValue={tour.bring.join("\n")} rows={6} />
+        <TextAreaField label="Related Tour Slugs" name="related_tour_slugs" defaultValue={tour.relatedTourSlugs.join("\n")} rows={6} />
+      </div>
+
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <h3 className="text-xl font-black text-[var(--forest-deep)]">Booking Section</h3>
+        <p className="mt-2 text-sm leading-7 text-neutral-600">These fields appear beside the quote form on the live landing page.</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <Field label="Booking Title" name="booking_title" defaultValue={tour.bookingTitle} />
+          <Field label="Meta Title" name="meta_title" defaultValue={tour.metaTitle ?? ""} />
+          <TextAreaField label="Booking Description" name="booking_description" defaultValue={tour.bookingDescription} rows={4} />
+          <TextAreaField label="Meta Description" name="meta_description" defaultValue={tour.metaDescription ?? ""} rows={4} />
+          <Field label="Meta Image URL" name="meta_image_url" defaultValue={tour.metaImageUrl ?? ""} />
+        </div>
+      </div>
+
+      <SaveButton>Save Tour</SaveButton>
+    </form>
+  );
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
   searchParams?: Promise<{ success?: string; error?: string }>;
 }) {
-  if (!hasCmsAdminPassword()) {
-    redirect("/admin/login");
-  }
-
-  if (!(await isAdminSessionValid())) {
-    redirect("/admin/login");
-  }
+  if (!hasCmsAdminPassword()) redirect("/admin/login");
+  if (!(await isAdminSessionValid())) redirect("/admin/login");
 
   const params = searchParams ? await searchParams : undefined;
   const dashboard = await getAdminDashboardData();
+  const homePage = dashboard.pages.find((page) => page.slug === "home");
+  const aboutPage = dashboard.pages.find((page) => page.slug === "about");
+  const toursPage = dashboard.pages.find((page) => page.slug === "tours");
+  const blogPage = dashboard.pages.find((page) => page.slug === "blog");
+  const contactPage = dashboard.pages.find((page) => page.slug === "contact");
 
   const settingsFields = [
     { label: "Site Name", groupKey: "general", key: "site_name", value: dashboard.settings.siteName, type: "string" },
@@ -62,7 +269,7 @@ export default async function AdminPage({
             <div className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--orange-soft)]">Backend CMS</div>
             <h1 className="mt-3 text-4xl font-black">Smyle Explores content operations</h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/75">
-              Settings, page JSON, tours, blog posts, and inquiry review now run through the CMS layer. Public pages read Supabase first and fall back to local seed content when keys are missing.
+              This CMS now mirrors the frontend more directly: destination pages, itinerary sections, hero slides, booking content, core pages, and submission review all map to the live site.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -84,15 +291,11 @@ export default async function AdminPage({
         ) : null}
 
         {params?.success ? (
-          <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm leading-7 text-emerald-900">
-            {params.success}
-          </div>
+          <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm leading-7 text-emerald-900">{params.success}</div>
         ) : null}
 
         {params?.error ? (
-          <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-sm leading-7 text-red-900">
-            {params.error}
-          </div>
+          <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-sm leading-7 text-red-900">{params.error}</div>
         ) : null}
 
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
@@ -114,185 +317,210 @@ export default async function AdminPage({
                 <input type="hidden" name="key" value={field.key} />
                 <input type="hidden" name="value_type" value={field.type} />
                 <input type="hidden" name="is_public" value="true" />
-                <label className="block text-sm font-bold text-[var(--forest-deep)]">
-                  {field.label}
-                  {field.type === "array" ? (
-                    <textarea name="value" defaultValue={field.value} rows={4} className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 outline-none focus:border-[var(--forest)]" />
-                  ) : (
-                    <input name="value" defaultValue={field.value} className="mt-3 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 outline-none focus:border-[var(--forest)]" />
-                  )}
-                </label>
-                <button type="submit" className="mt-4 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
-                  Save Setting
-                </button>
+                {field.type === "array" ? (
+                  <TextAreaField label={field.label} name="value" defaultValue={field.value} rows={4} />
+                ) : (
+                  <Field label={field.label} name="value" defaultValue={field.value} />
+                )}
+                <SaveButton>Save Setting</SaveButton>
               </form>
             ))}
           </div>
         </section>
 
         <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Pages</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">Edit static-route content as JSON payloads keyed by page slug.</p>
-          <div className="mt-8 space-y-6">
-            {dashboard.pages.length ? dashboard.pages.map((page) => (
-              <form key={page.slug} action={upsertPageAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Slug
-                    <input name="slug" defaultValue={page.slug} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Title
-                    <input name="title" defaultValue={page.title} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Status
-                    <select name="status" defaultValue={page.status} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                      <option value="draft">draft</option>
-                      <option value="published">published</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Published At
-                    <input name="published_at" defaultValue={page.publishedAt ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Excerpt
-                  <textarea name="excerpt" defaultValue={page.excerpt ?? ""} rows={2} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Content JSON
-                  <textarea name="content" defaultValue={prettyJson(page.content)} rows={12} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-mono text-sm" />
-                </label>
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Featured Image URL
-                    <input name="featured_image_url" defaultValue={page.featuredImageUrl ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Title
-                    <input name="meta_title" defaultValue={page.metaTitle ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Image URL
-                    <input name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Meta Description
-                  <textarea name="meta_description" defaultValue={page.metaDescription ?? ""} rows={3} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
-                  Save Page
-                </button>
-              </form>
-            )) : (
-              <div className="rounded-2xl border border-dashed border-black/10 bg-[var(--sand)]/35 p-6 text-sm leading-7 text-neutral-600">
-                No page records were found yet. Create `home`, `about`, `tours`, `blog`, and `contact` rows in Supabase to take full control of each static route from the CMS.
+          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Frontend Page Editors</h2>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">These forms reflect the sections visitors see on the site, rather than generic JSON blobs.</p>
+
+          {homePage ? (
+            <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+              <input type="hidden" name="slug" value="home" />
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Home Page</h3>
+              <BasePageFields page={homePage} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Hero Image" name="heroImage" defaultValue={asString(homePage.content.heroImage)} />
+                <Field label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} />
+                <Field label="Hero Title" name="heroTitle" defaultValue={asString(homePage.content.heroTitle)} />
+                <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(homePage.content.heroSubtitle)} rows={3} />
+                <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
+                <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
               </div>
-            )}
-          </div>
+              {asStringArray(homePage.content.introParagraphs, ["", ""]).map((paragraph, index) => (
+                <div key={`home-intro-${index}`} className="mt-4">
+                  <TextAreaField label={`Intro Paragraph ${index + 1}`} name={`introParagraph_${index}`} defaultValue={paragraph} rows={3} />
+                </div>
+              ))}
+              <div className="mt-6 rounded-2xl border border-black/5 bg-white p-5">
+                <h4 className="text-lg font-black text-[var(--forest-deep)]">Why Choose Us Cards</h4>
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                  {asObjectArray<{ title: string; description: string; icon: string }>(homePage.content.whyChooseUsItems, whyChooseUs).slice(0, 3).map((item, index) => (
+                    <div key={`why-item-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/40 p-4">
+                      <Field label="Card Title" name={`whyItemTitle_${index + 1}`} defaultValue={item.title} />
+                      <div className="mt-3">
+                        <TextAreaField label="Description" name={`whyItemDescription_${index + 1}`} defaultValue={item.description} rows={4} />
+                      </div>
+                      <div className="mt-3">
+                        <Field label="Icon" name={`whyItemIcon_${index + 1}`} defaultValue={item.icon} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <Field label="Why Eyebrow" name="whyEyebrow" defaultValue={asString(homePage.content.whyEyebrow)} />
+                <Field label="Why Title" name="whyTitle" defaultValue={asString(homePage.content.whyTitle)} />
+                <TextAreaField label="Why Description" name="whyDescription" defaultValue={asString(homePage.content.whyDescription)} rows={3} />
+                <Field label="Tours Eyebrow" name="toursEyebrow" defaultValue={asString(homePage.content.toursEyebrow)} />
+                <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
+                <TextAreaField label="Tours Description" name="toursDescription" defaultValue={asString(homePage.content.toursDescription)} rows={3} />
+                <Field label="Quote Image" name="quoteImage" defaultValue={asString(homePage.content.quoteImage)} />
+                <TextAreaField label="Quote Text" name="quoteText" defaultValue={asString(homePage.content.quoteText)} rows={4} />
+                <Field label="Testimonials Eyebrow" name="testimonialsEyebrow" defaultValue={asString(homePage.content.testimonialsEyebrow)} />
+                <Field label="Testimonials Title" name="testimonialsTitle" defaultValue={asString(homePage.content.testimonialsTitle)} />
+                <TextAreaField label="Testimonials Description" name="testimonialsDescription" defaultValue={asString(homePage.content.testimonialsDescription)} rows={3} />
+                <Field label="CTA Eyebrow" name="ctaEyebrow" defaultValue={asString(homePage.content.ctaEyebrow)} />
+                <Field label="CTA Title" name="ctaTitle" defaultValue={asString(homePage.content.ctaTitle)} />
+                <TextAreaField label="CTA Description" name="ctaDescription" defaultValue={asString(homePage.content.ctaDescription)} rows={3} />
+              </div>
+              <SaveButton>Save Home Page</SaveButton>
+            </form>
+          ) : null}
+
+          {aboutPage ? (
+            <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+              <input type="hidden" name="slug" value="about" />
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">About Page</h3>
+              <BasePageFields page={aboutPage} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Hero Image" name="heroImage" defaultValue={asString(aboutPage.content.heroImage)} />
+                <Field label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} />
+                <Field label="Hero Title" name="heroTitle" defaultValue={asString(aboutPage.content.heroTitle)} />
+                <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(aboutPage.content.heroSubtitle)} rows={3} />
+                <Field label="Story Eyebrow" name="storyEyebrow" defaultValue={asString(aboutPage.content.storyEyebrow)} />
+                <Field label="Story Title" name="storyTitle" defaultValue={asString(aboutPage.content.storyTitle)} />
+              </div>
+              {asStringArray(aboutPage.content.storyParagraphs, aboutStory).map((paragraph, index) => (
+                <div key={`about-story-${index}`} className="mt-4">
+                  <TextAreaField label={`Story Paragraph ${index + 1}`} name={`storyParagraph_${index}`} defaultValue={paragraph} rows={3} />
+                </div>
+              ))}
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Mission Eyebrow" name="missionEyebrow" defaultValue={asString(aboutPage.content.missionEyebrow)} />
+                <TextAreaField label="Mission Quote" name="missionQuote" defaultValue={asString(aboutPage.content.missionQuote)} rows={3} />
+                <Field label="Values Eyebrow" name="valuesEyebrow" defaultValue={asString(aboutPage.content.valuesEyebrow)} />
+                <Field label="Values Title" name="valuesTitle" defaultValue={asString(aboutPage.content.valuesTitle)} />
+                <Field label="CTA Title" name="ctaTitle" defaultValue={asString(aboutPage.content.ctaTitle)} />
+              </div>
+              <SaveButton>Save About Page</SaveButton>
+            </form>
+          ) : null}
+
+          {toursPage ? (
+            <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+              <input type="hidden" name="slug" value="tours" />
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Tours Index Page</h3>
+              <BasePageFields page={toursPage} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Hero Image" name="heroImage" defaultValue={asString(toursPage.content.heroImage)} />
+                <Field label="Hero Title" name="heroTitle" defaultValue={asString(toursPage.content.heroTitle)} />
+                <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(toursPage.content.heroSubtitle)} rows={3} />
+                <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(toursPage.content.introEyebrow)} />
+                <Field label="Intro Title" name="introTitle" defaultValue={asString(toursPage.content.introTitle)} />
+                <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(toursPage.content.introDescription)} rows={4} />
+              </div>
+              <SaveButton>Save Tours Page</SaveButton>
+            </form>
+          ) : null}
+
+          {blogPage ? (
+            <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+              <input type="hidden" name="slug" value="blog" />
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Blog Index Page</h3>
+              <BasePageFields page={blogPage} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Hero Image" name="heroImage" defaultValue={asString(blogPage.content.heroImage)} />
+                <Field label="Hero Title" name="heroTitle" defaultValue={asString(blogPage.content.heroTitle)} />
+                <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(blogPage.content.heroSubtitle)} rows={3} />
+                <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(blogPage.content.introEyebrow)} />
+                <Field label="Intro Title" name="introTitle" defaultValue={asString(blogPage.content.introTitle)} />
+                <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(blogPage.content.introDescription)} rows={4} />
+              </div>
+              <SaveButton>Save Blog Page</SaveButton>
+            </form>
+          ) : null}
+
+          {contactPage ? (
+            <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+              <input type="hidden" name="slug" value="contact" />
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Contact Page</h3>
+              <BasePageFields page={contactPage} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Hero Image" name="heroImage" defaultValue={asString(contactPage.content.heroImage)} />
+                <Field label="Hero Title" name="heroTitle" defaultValue={asString(contactPage.content.heroTitle)} />
+                <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(contactPage.content.heroSubtitle)} rows={3} />
+                <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(contactPage.content.introEyebrow)} />
+                <Field label="Intro Title" name="introTitle" defaultValue={asString(contactPage.content.introTitle)} />
+                <Field label="Quote Eyebrow" name="quoteEyebrow" defaultValue={asString(contactPage.content.quoteEyebrow)} />
+                <Field label="Quote Title" name="quoteTitle" defaultValue={asString(contactPage.content.quoteTitle)} />
+              </div>
+              <SaveButton>Save Contact Page</SaveButton>
+            </form>
+          ) : null}
         </section>
 
         <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Tours</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">Core tour inventory with publishing state, pricing, imagery, and long-form details.</p>
+          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Destination Tour Editors</h2>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">
+            Each tour form maps directly to the live landing page: hero slides, overview, itinerary days, highlights, packing list, booking copy, and SEO.
+          </p>
           <div className="mt-8 space-y-8">
             {dashboard.tours.map((tour) => (
-              <form key={tour.slug} action={upsertTourAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
-                <div className="grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Slug
-                    <input name="slug" defaultValue={tour.slug} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Title
-                    <input name="title" defaultValue={tour.title} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Status
-                    <select name="status" defaultValue={tour.status ?? "published"} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                      <option value="draft">draft</option>
-                      <option value="published">published</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Duration
-                    <input name="duration" defaultValue={tour.duration} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Difficulty
-                    <input name="difficulty" defaultValue={tour.difficulty} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Minimum Age
-                    <input name="minimum_age" defaultValue={tour.minAge} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Group Size
-                    <input name="group_size" defaultValue={tour.groupSize} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Starting Price
-                    <input name="starting_price" defaultValue={tour.startingPrice} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Location
-                    <input name="location" defaultValue={tour.location} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Summary
-                  <textarea name="summary" defaultValue={tour.shortDescription} rows={2} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Hero Image URL
-                  <input name="hero_image_url" defaultValue={tour.heroImage} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Overview
-                    <textarea name="description" defaultValue={tour.overview.join("\n")} rows={8} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Highlights
-                    <textarea name="highlights" defaultValue={tour.highlights.join("\n")} rows={8} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <div>
-                    <label className="text-sm font-semibold text-neutral-700">
-                      Included
-                      <textarea name="included" defaultValue={tour.included.join("\n")} rows={4} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                    </label>
-                    <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                      What To Bring
-                      <textarea name="what_to_bring" defaultValue={tour.bring.join("\n")} rows={4} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                    </label>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Title
-                    <input name="meta_title" defaultValue={tour.metaTitle ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Image URL
-                    <input name="meta_image_url" defaultValue={tour.metaImageUrl ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Published At
-                    <input name="published_at" defaultValue={tour.publishedAt ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Meta Description
-                  <textarea name="meta_description" defaultValue={tour.metaDescription ?? ""} rows={3} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
-                  Save Tour
-                </button>
-              </form>
+              <TourEditor key={tour.slug} tour={tour} />
             ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-2">
+          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Testimonials</h2>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the testimonial cards on the homepage.</p>
+            <div className="mt-8 space-y-6">
+              {dashboard.testimonials.map((testimonial, index) => (
+                <form key={testimonial.id ?? testimonial.name} action={upsertTestimonialAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  {testimonial.id ? <input type="hidden" name="id" value={testimonial.id} /> : null}
+                  <input type="hidden" name="order_column" value={String(index)} />
+                  <Field label="Name" name="name" defaultValue={testimonial.name} />
+                  <div className="mt-3">
+                    <Field label="Subtitle" name="title" defaultValue={testimonial.title} />
+                  </div>
+                  <div className="mt-3">
+                    <TextAreaField label="Quote" name="quote" defaultValue={testimonial.quote} rows={5} />
+                  </div>
+                  <SaveButton>Save Testimonial</SaveButton>
+                </form>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+            <h2 className="text-3xl font-black text-[var(--forest-deep)]">Company Values</h2>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the value cards on the About page.</p>
+            <div className="mt-8 space-y-6">
+              {dashboard.companyValues.map((value, index) => (
+                <form key={value.id ?? value.title} action={upsertCompanyValueAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  {value.id ? <input type="hidden" name="id" value={value.id} /> : null}
+                  <input type="hidden" name="order_column" value={String(index)} />
+                  <Field label="Title" name="title" defaultValue={value.title} />
+                  <div className="mt-3">
+                    <TextAreaField label="Description" name="description" defaultValue={value.description} rows={4} />
+                  </div>
+                  <div className="mt-3">
+                    <Field label="Icon" name="icon" defaultValue={value.icon} />
+                  </div>
+                  <SaveButton>Save Value</SaveButton>
+                </form>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -302,59 +530,27 @@ export default async function AdminPage({
             {dashboard.blogPosts.map((post) => (
               <form key={post.slug} action={upsertBlogPostAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Slug
-                    <input name="slug" defaultValue={post.slug} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Title
-                    <input name="title" defaultValue={post.title} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Status
-                    <select name="status" defaultValue={post.status ?? "published"} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                      <option value="draft">draft</option>
-                      <option value="published">published</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Category
-                    <input name="category" defaultValue={post.category} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Featured Image URL
-                    <input name="featured_image_url" defaultValue={post.image} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Published At
-                    <input name="published_at" defaultValue={post.publishedAt ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
+                  <Field label="Slug" name="slug" defaultValue={post.slug} />
+                  <Field label="Title" name="title" defaultValue={post.title} />
+                  <SelectField label="Status" name="status" defaultValue={post.status ?? "published"} options={["draft", "published"]} />
+                  <Field label="Category" name="category" defaultValue={post.category} />
+                  <Field label="Featured Image URL" name="featured_image_url" defaultValue={post.image} />
+                  <Field label="Published At" name="published_at" defaultValue={post.publishedAt ?? ""} />
                 </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Excerpt
-                  <textarea name="excerpt" defaultValue={post.excerpt} rows={3} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Content JSON
-                  <textarea name="content" defaultValue={prettyJson(post.content ?? {})} rows={10} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-mono text-sm" />
-                </label>
+                <div className="mt-4">
+                  <TextAreaField label="Excerpt" name="excerpt" defaultValue={post.excerpt} rows={3} />
+                </div>
+                <div className="mt-4">
+                  <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(post.content ?? {})} rows={10} mono />
+                </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Title
-                    <input name="meta_title" defaultValue={post.metaTitle ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
-                  <label className="text-sm font-semibold text-neutral-700">
-                    Meta Image URL
-                    <input name="meta_image_url" defaultValue={post.metaImageUrl ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                  </label>
+                  <Field label="Meta Title" name="meta_title" defaultValue={post.metaTitle ?? ""} />
+                  <Field label="Meta Image URL" name="meta_image_url" defaultValue={post.metaImageUrl ?? ""} />
                 </div>
-                <label className="mt-4 block text-sm font-semibold text-neutral-700">
-                  Meta Description
-                  <textarea name="meta_description" defaultValue={post.metaDescription ?? ""} rows={3} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
-                </label>
-                <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
-                  Save Post
-                </button>
+                <div className="mt-4">
+                  <TextAreaField label="Meta Description" name="meta_description" defaultValue={post.metaDescription ?? ""} rows={3} />
+                </div>
+                <SaveButton>Save Post</SaveButton>
               </form>
             ))}
           </div>
@@ -364,33 +560,26 @@ export default async function AdminPage({
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Recent Submissions</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Contact inquiries and quote requests persist in Supabase through server routes.</p>
           <div className="mt-8 space-y-4">
-            {dashboard.submissions.length ? dashboard.submissions.map((submission) => (
-              <article key={submission.id} className="rounded-2xl border border-black/5 bg-[var(--sand)]/40 p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{submission.type}</div>
-                    <h3 className="mt-2 text-xl font-black text-[var(--forest-deep)]">{submission.name}</h3>
-                    <p className="mt-2 text-sm text-neutral-600">{submission.email} | {submission.phone}</p>
-                    <p className="mt-4 text-sm leading-7 text-neutral-700">{submission.summary}</p>
+            {dashboard.submissions.length ? (
+              dashboard.submissions.map((submission) => (
+                <article key={submission.id} className="rounded-2xl border border-black/5 bg-[var(--sand)]/40 p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{submission.type}</div>
+                      <h3 className="mt-2 text-xl font-black text-[var(--forest-deep)]">{submission.name}</h3>
+                      <p className="mt-2 text-sm text-neutral-600">{submission.email} | {submission.phone}</p>
+                      <p className="mt-4 text-sm leading-7 text-neutral-700">{submission.summary}</p>
+                    </div>
+                    <form action={updateSubmissionStatusAction} className="min-w-[220px] rounded-2xl bg-white p-4 shadow-sm">
+                      <input type="hidden" name="id" value={submission.id} />
+                      <input type="hidden" name="table" value={submission.type === "contact" ? "contact_submissions" : "quote_requests"} />
+                      <SelectField label="Status" name="status" defaultValue={submission.status} options={["new", "in_progress", "closed"]} />
+                      <SaveButton>Update</SaveButton>
+                    </form>
                   </div>
-                  <form action={updateSubmissionStatusAction} className="min-w-[220px] rounded-2xl bg-white p-4 shadow-sm">
-                    <input type="hidden" name="id" value={submission.id} />
-                    <input type="hidden" name="table" value={submission.type === "contact" ? "contact_submissions" : "quote_requests"} />
-                    <label className="block text-sm font-semibold text-neutral-700">
-                      Status
-                      <select name="status" defaultValue={submission.status} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                        <option value="new">new</option>
-                        <option value="in_progress">in_progress</option>
-                        <option value="closed">closed</option>
-                      </select>
-                    </label>
-                    <button type="submit" className="mt-4 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
-                      Update
-                    </button>
-                  </form>
-                </div>
-              </article>
-            )) : (
+                </article>
+              ))
+            ) : (
               <div className="rounded-2xl border border-dashed border-black/10 bg-[var(--sand)]/35 p-6 text-sm leading-7 text-neutral-600">
                 No stored submissions yet.
               </div>

@@ -66,7 +66,13 @@ export function ContactForm({ whatsappUrl }: { whatsappUrl: string }) {
   );
 }
 
-export function QuoteForm({ whatsappUrl }: { whatsappUrl: string }) {
+export function QuoteForm({
+  whatsappUrl,
+  preferredTour,
+}: {
+  whatsappUrl: string;
+  preferredTour?: string;
+}) {
   const [state, setState] = useState<FormState>({ pending: false, success: "", error: "" });
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -111,7 +117,7 @@ export function QuoteForm({ whatsappUrl }: { whatsappUrl: string }) {
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <input required name="guests" placeholder="Number of Guests" className="rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
-        <input name="tour" placeholder="Preferred Tour" className="rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
+        <input name="tour" placeholder="Preferred Tour" defaultValue={preferredTour ?? ""} className="rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
       </div>
       <textarea name="specialRequests" placeholder="Special Requests" rows={5} className="w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-[var(--forest)]" />
       <div className="flex flex-wrap gap-3">

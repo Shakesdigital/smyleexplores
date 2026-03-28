@@ -13,6 +13,7 @@ const aboutFallbackContent = {
   storyEyebrow: "Our Story",
   storyTitle: "Born in Jinja. Built to help travelers feel Uganda, not just see it.",
   storyImage: "/images/about-story-gogolo.jpeg",
+  storyParagraphs: getStaticFallbackContent().aboutStory,
   missionEyebrow: "Mission",
   missionQuote: "To create unforgettable travel experiences across Uganda by delivering safe, exciting, and authentic adventures.",
   valuesEyebrow: "Values",
@@ -26,6 +27,10 @@ export default async function AboutPage() {
     getCompanyValues(),
   ]);
   const { aboutStory } = getStaticFallbackContent();
+  const storyParagraphs =
+    Array.isArray(content.storyParagraphs) && content.storyParagraphs.length
+      ? (content.storyParagraphs as string[])
+      : aboutStory;
 
   return (
     <main>
@@ -40,7 +45,7 @@ export default async function AboutPage() {
               </div>
             </div>
           </div>
-          <div className="prose-copy text-neutral-600">{aboutStory.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+          <div className="prose-copy text-neutral-600">{storyParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
         </div>
       </section>
       <section className="section-space pt-0">
