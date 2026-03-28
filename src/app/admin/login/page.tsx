@@ -6,10 +6,16 @@ import { loginAdminAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
   if (await isAdminSessionValid()) {
     redirect("/admin");
   }
+
+  const params = searchParams ? await searchParams : undefined;
 
   return (
     <main className="section-space">
@@ -20,6 +26,11 @@ export default async function AdminLoginPage() {
           <p className="mt-4 text-sm leading-7 text-neutral-600">
             This admin surface is protected by `CMS_ADMIN_PASSWORD` and uses the Supabase service role key for writes.
           </p>
+          {params?.error ? (
+            <div className="mt-6 rounded-2xl bg-red-50 p-5 text-sm font-medium text-red-700">
+              {params.error}
+            </div>
+          ) : null}
           {!hasCmsAdminPassword() ? (
             <div className="mt-8 rounded-2xl bg-red-50 p-5 text-sm font-medium text-red-700">
               `CMS_ADMIN_PASSWORD` is not configured. Add it to your environment before using the CMS.

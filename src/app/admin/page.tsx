@@ -19,7 +19,11 @@ function prettyJson(value: Record<string, unknown>) {
   return JSON.stringify(value, null, 2);
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ success?: string; error?: string }>;
+}) {
   if (!hasCmsAdminPassword()) {
     redirect("/admin/login");
   }
@@ -28,6 +32,7 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
+  const params = searchParams ? await searchParams : undefined;
   const dashboard = await getAdminDashboardData();
 
   const settingsFields = [
@@ -75,6 +80,18 @@ export default async function AdminPage() {
         {!dashboard.hasServiceRole ? (
           <div className="rounded-[2rem] border border-yellow-200 bg-yellow-50 p-6 text-sm leading-7 text-yellow-900">
             `SUPABASE_SERVICE_ROLE_KEY` is not configured, so this dashboard is running in fallback mode. Add the service role key to enable CMS writes and submission review.
+          </div>
+        ) : null}
+
+        {params?.success ? (
+          <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm leading-7 text-emerald-900">
+            {params.success}
+          </div>
+        ) : null}
+
+        {params?.error ? (
+          <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 text-sm leading-7 text-red-900">
+            {params.error}
           </div>
         ) : null}
 
