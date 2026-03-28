@@ -44,7 +44,7 @@ export function RelatedToursCarousel({ tours }: { tours: Tour[] }) {
         className="carousel-track mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4"
       >
         {tours.map((tour) => (
-          <div key={tour.slug} className="min-w-[85%] snap-start md:min-w-[48%] xl:min-w-[31%]">
+          <div key={tour.slug} className="min-w-[88%] snap-start sm:min-w-[70%] md:min-w-[48%] lg:min-w-[calc((100%-3rem)/3)]">
             <TourCard tour={tour} />
           </div>
         ))}

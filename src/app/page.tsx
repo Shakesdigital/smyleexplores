@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { HeroBanner } from "@/components/hero-banner";
 import { Icon } from "@/components/icons";
+import { RelatedToursCarousel } from "@/components/related-tours-carousel";
 import { SectionHeading } from "@/components/section-heading";
-import { TourCard } from "@/components/tour-card";
 import { getFeaturedTours, getPageContent, getStaticFallbackContent, getTestimonials } from "@/lib/cms";
 
 const homeFallbackContent = {
@@ -93,9 +93,7 @@ export default async function HomePage() {
             <SectionHeading eyebrow={String(content.toursEyebrow)} title={String(content.toursTitle)} description={String(content.toursDescription)} />
             <Link href="/tours" className="hidden rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] lg:inline-flex">View All Tours</Link>
           </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            {featuredTours.map((tour) => <TourCard key={tour.slug} tour={tour} />)}
-          </div>
+          <RelatedToursCarousel tours={featuredTours} />
         </div>
       </section>
       <section className="section-space relative overflow-hidden">
