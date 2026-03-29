@@ -636,6 +636,7 @@ export default async function AdminPage({
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
                     <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
+                    <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(homePage.content.introDescription)} rows={3} />
                     <ImageField label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} folder="pages/home/feature" />
                     <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
                   </>
@@ -728,6 +729,7 @@ export default async function AdminPage({
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(homePage.content.heroSubtitle)} rows={3} />
                 <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
                 <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
+                <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(homePage.content.introDescription)} rows={3} />
               </div>
               {asStringArray(homePage.content.introParagraphs, ["", ""]).map((paragraph, index) => (
                 <div key={`home-intro-${index}`} className="mt-4">

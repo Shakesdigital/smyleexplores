@@ -13,6 +13,7 @@ const homeFallbackContent = {
   heroSubtitle: "Destination-led Uganda tours with waterfall escapes, wildlife safaris, primate journeys, and immersive stays in Jinja.",
   introEyebrow: "Pearl of Africa",
   introTitle: "Travel deeper into Uganda with itineraries designed around the places that make the country unforgettable.",
+  introDescription: "Thoughtfully structured journeys, destination insight, and local coordination that make planning Uganda travel feel clear from the first click.",
   introParagraphs: [
     "Smyle Explores creates unforgettable journeys across Uganda, combining strong destination planning with the warmth of local hospitality.",
     "From Sipi Falls and Bwindi to Queen Elizabeth, Lake Mburo, and Jinja, every itinerary is built to feel clear, personal, and easy to act on.",
@@ -65,7 +66,7 @@ export default async function HomePage() {
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div className="space-y-8 pt-4 lg:pt-8">
-            <SectionHeading eyebrow={String(content.introEyebrow)} title={String(content.introTitle)} />
+            <SectionHeading eyebrow={String(content.introEyebrow)} title={String(content.introTitle)} description={String(content.introDescription)} />
             <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
               <div className="space-y-6 p-8 text-lg leading-8 text-neutral-600 md:p-10">
                 {Array.isArray(content.introParagraphs) ? (content.introParagraphs as string[]).map((paragraph) => <p key={paragraph}>{paragraph}</p>) : null}

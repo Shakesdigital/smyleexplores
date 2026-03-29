@@ -146,6 +146,7 @@ function buildPageContent(formData: FormData, slug: string) {
       setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
       setStringFieldIfPresent(content, formData, "introEyebrow");
       setStringFieldIfPresent(content, formData, "introTitle");
+      setStringFieldIfPresent(content, formData, "introDescription");
       setLinesFieldIfPresent(content, formData, "introParagraph_", "introParagraphs");
       setStringFieldIfPresent(content, formData, "featureImage");
       setStringFieldIfPresent(content, formData, "whyEyebrow");
