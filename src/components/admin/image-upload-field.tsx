@@ -2,9 +2,13 @@
 
 import { ChangeEvent, useMemo, useState } from "react";
 
+import { createSupabaseBrowserClient } from "@/lib/supabase";
+
 type UploadResponse = {
+  bucket: string;
   path: string;
-  url: string;
+  token: string;
+  publicUrl: string;
 };
 
 async function readJsonSafely<T>(response: Response) {
@@ -58,21 +62,32 @@ export function ImageUploadField({
     setError("");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", folder);
-
       const response = await fetch("/api/admin/upload-image", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          folder,
+        }),
       });
 
       const payload = await readJsonSafely<UploadResponse | { error?: string }>(response);
-      if (!response.ok || !("url" in payload) || !payload.url) {
+      if (!response.ok || !("publicUrl" in payload) || !payload.publicUrl || !("token" in payload) || !payload.token) {
         throw new Error("error" in payload && payload.error ? payload.error : "Upload failed.");
       }
 
-      setValue(payload.url);
+      const client = createSupabaseBrowserClient();
+      if (!client) {
+        throw new Error("NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured.");
+      }
+
+      const uploadResult = await client.storage.from(payload.bucket).uploadToSignedUrl(payload.path, payload.token, file);
+      if (uploadResult.error) {
+        throw new Error(uploadResult.error.message);
+      }
+
+      setValue(payload.publicUrl);
       setStoragePath(payload.path);
       event.target.value = "";
     } catch (uploadError) {

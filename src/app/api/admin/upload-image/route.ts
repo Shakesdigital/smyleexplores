@@ -45,38 +45,35 @@ export async function POST(request: Request) {
 
     await ensureCmsMediaBucket(client);
 
-    const formData = await request.formData();
-    const file = formData.get("file");
-    const folder = sanitizeSegment(String(formData.get("folder") ?? "general"), "general");
+    const body = (await request.json()) as { fileName?: string; fileType?: string; folder?: string };
+    const fileName = String(body.fileName ?? "").trim();
+    const fileType = String(body.fileType ?? "").trim().toLowerCase();
+    const folder = sanitizeSegment(String(body.folder ?? "general"), "general");
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
+    if (!fileName) {
+      return NextResponse.json({ error: "No file name provided." }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/")) {
+    if (!fileType.startsWith("image/")) {
       return NextResponse.json({ error: "Only image uploads are allowed." }, { status: 400 });
     }
 
-    const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() ?? "jpg" : "jpg";
-    const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
-    const path = `${folder}/${fileName}`;
-    const arrayBuffer = await file.arrayBuffer();
-    const fileBuffer = Buffer.from(arrayBuffer);
+    const extension = fileName.includes(".") ? fileName.split(".").pop()?.toLowerCase() ?? "jpg" : "jpg";
+    const path = `${folder}/${Date.now()}-${randomUUID()}.${extension}`;
 
-    const { error } = await client.storage.from(CMS_MEDIA_BUCKET).upload(path, fileBuffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const signed = await client.storage.from(CMS_MEDIA_BUCKET).createSignedUploadUrl(path);
+    if (signed.error || !signed.data) {
+      return NextResponse.json({ error: signed.error?.message ?? "Could not create signed upload URL." }, { status: 500 });
     }
 
-    const { data } = client.storage.from(CMS_MEDIA_BUCKET).getPublicUrl(path);
+    const { data: publicUrlData } = client.storage.from(CMS_MEDIA_BUCKET).getPublicUrl(path);
 
     return NextResponse.json({
+      bucket: CMS_MEDIA_BUCKET,
       path,
-      url: data.publicUrl,
+      token: signed.data.token,
+      signedUrl: signed.data.signedUrl,
+      publicUrl: publicUrlData.publicUrl,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal upload error.";
