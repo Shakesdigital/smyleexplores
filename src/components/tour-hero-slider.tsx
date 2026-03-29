@@ -33,27 +33,26 @@ export function TourHeroSlider({ slides, fallbackTitle }: { slides: TourHeroSlid
       <div className="container-shell relative flex min-h-[82vh] flex-col justify-end py-16 text-white">
         <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 backdrop-blur-[3px]">
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Destination Itinerary</div>
-          <h1 className="mt-5 text-5xl font-black leading-tight md:text-7xl">{slides[activeIndex]?.title ?? fallbackTitle}</h1>
+          <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">{slides[activeIndex]?.title ?? fallbackTitle}</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-white/85 md:text-lg">
             {slides[activeIndex]?.subtitle ?? "Explore this Uganda experience day by day."}
           </p>
         </div>
 
         {slides.length > 1 ? (
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 flex justify-center gap-3">
             {slides.map((slide, index) => (
               <button
                 key={`${slide.title}-indicator-${index}`}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] transition ${
+                aria-label={`Show tour hero slide ${index + 1}`}
+                className={`h-3 w-3 rounded-full transition ${
                   index === activeIndex
-                    ? "bg-[var(--orange)] text-white"
-                    : "border border-white/20 bg-white/10 text-white/80 hover:bg-white/15"
+                    ? "bg-[var(--orange)] shadow-[0_0_0_6px_rgba(245,124,0,0.2)]"
+                    : "bg-white/45 hover:bg-white/75"
                 }`}
-              >
-                {slide.title}
-              </button>
+              />
             ))}
           </div>
         ) : null}
