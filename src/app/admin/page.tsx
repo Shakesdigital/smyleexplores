@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { aboutStory, whyChooseUs } from "@/lib/content";
 import { getAdminDashboardData } from "@/lib/cms";
 import { hasCmsAdminPassword, isAdminSessionValid } from "@/lib/admin-session";
@@ -45,6 +46,20 @@ function Field({ label, name, defaultValue }: { label: string; name: string; def
       <input name={name} defaultValue={defaultValue ?? ""} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
     </label>
   );
+}
+
+function ImageField({
+  label,
+  name,
+  defaultValue,
+  folder,
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  folder: string;
+}) {
+  return <ImageUploadField label={label} name={name} defaultValue={defaultValue} folder={folder} />;
 }
 
 function TextAreaField({
@@ -98,6 +113,10 @@ function SelectField({
   );
 }
 
+function isSettingsImageField(key: string) {
+  return key === "logo_url" || key === "seo_default_image";
+}
+
 function SaveButton({ children }: { children: string }) {
   return (
     <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
@@ -149,9 +168,9 @@ function BasePageFields({ page }: { page: CmsPage }) {
         <SelectField label="Status" name="status" defaultValue={page.status} options={["draft", "published"]} />
       </div>
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <Field label="Featured Image URL" name="featured_image_url" defaultValue={page.featuredImageUrl ?? ""} />
+        <ImageField label="Featured Image" name="featured_image_url" defaultValue={page.featuredImageUrl ?? ""} folder={`pages/${page.slug}`} />
         <Field label="Meta Title" name="meta_title" defaultValue={page.metaTitle ?? ""} />
-        <Field label="Meta Image URL" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} />
+        <ImageField label="Meta Image" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} folder={`pages/${page.slug}/meta`} />
       </div>
       <TextAreaField label="Meta Description" name="meta_description" defaultValue={page.metaDescription ?? ""} rows={3} />
     </>
@@ -184,7 +203,7 @@ function TourEditor({ tour }: { tour: Tour }) {
         <Field label="Group Size" name="group_size" defaultValue={tour.groupSize} />
         <Field label="Starting Price" name="starting_price" defaultValue={tour.startingPrice} />
         <Field label="Location" name="location" defaultValue={tour.location} />
-        <Field label="Hero Fallback Image" name="hero_image_url" defaultValue={tour.heroImage} />
+        <ImageField label="Hero Fallback Image" name="hero_image_url" defaultValue={tour.heroImage} folder={`tours/${tour.slug || "new-tour"}/hero`} />
         <Field label="Published At" name="published_at" defaultValue={tour.publishedAt ?? ""} />
       </div>
 
@@ -206,7 +225,7 @@ function TourEditor({ tour }: { tour: Tour }) {
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
           {slides.map((slide, index) => (
             <div key={`${tour.slug}-slide-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
-              <Field label={`Slide ${index + 1} Image`} name={`slideImage_${index + 1}`} defaultValue={slide.image} />
+              <ImageField label={`Slide ${index + 1} Image`} name={`slideImage_${index + 1}`} defaultValue={slide.image} folder={`tours/${tour.slug || "new-tour"}/slides`} />
               <div className="mt-3">
                 <Field label={`Slide ${index + 1} Title`} name={`slideTitle_${index + 1}`} defaultValue={slide.title} />
               </div>
@@ -227,7 +246,7 @@ function TourEditor({ tour }: { tour: Tour }) {
               <div className="grid gap-4 lg:grid-cols-3">
                 <Field label="Day Label" name={`dayLabel_${index + 1}`} defaultValue={day.dayLabel} />
                 <Field label="Day Title" name={`dayTitle_${index + 1}`} defaultValue={day.title} />
-                <Field label="Day Image" name={`dayImage_${index + 1}`} defaultValue={day.image} />
+                <ImageField label="Day Image" name={`dayImage_${index + 1}`} defaultValue={day.image} folder={`tours/${tour.slug || "new-tour"}/days`} />
               </div>
               <div className="mt-4">
                 <TextAreaField label="Day Description" name={`dayDescription_${index + 1}`} defaultValue={day.description} rows={3} />
@@ -255,7 +274,7 @@ function TourEditor({ tour }: { tour: Tour }) {
           <Field label="Meta Title" name="meta_title" defaultValue={tour.metaTitle ?? ""} />
           <TextAreaField label="Booking Description" name="booking_description" defaultValue={tour.bookingDescription} rows={4} />
           <TextAreaField label="Meta Description" name="meta_description" defaultValue={tour.metaDescription ?? ""} rows={4} />
-          <Field label="Meta Image URL" name="meta_image_url" defaultValue={tour.metaImageUrl ?? ""} />
+          <ImageField label="Meta Image" name="meta_image_url" defaultValue={tour.metaImageUrl ?? ""} folder={`tours/${tour.slug || "new-tour"}/meta`} />
         </div>
       </div>
 
@@ -279,12 +298,12 @@ function HeroEditor({
       <h3 className="text-2xl font-black text-[var(--forest-deep)]">{label}</h3>
       <p className="mt-2 text-sm leading-7 text-neutral-600">Quick hero controls for the live page banner.</p>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Field label="Hero Image" name="heroImage" defaultValue={asString(page.content.heroImage)} />
+        <ImageField label="Hero Image" name="heroImage" defaultValue={asString(page.content.heroImage)} folder={`pages/${page.slug}/hero`} />
         <Field label="Hero Title" name="heroTitle" defaultValue={asString(page.content.heroTitle)} />
         <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(page.content.heroSubtitle)} rows={3} />
         <SelectField label="Status" name="status" defaultValue={page.status} options={["draft", "published"]} />
         <Field label="Page Title" name="title" defaultValue={page.title} />
-        <Field label="Meta Image URL" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} />
+        <ImageField label="Meta Image" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} folder={`pages/${page.slug}/meta`} />
       </div>
       {extraFields ? <div className="mt-4 grid gap-4 lg:grid-cols-2">{extraFields}</div> : null}
       <SaveButton>Save Hero</SaveButton>
@@ -447,6 +466,8 @@ export default async function AdminPage({
                 <input type="hidden" name="is_public" value="true" />
                 {field.type === "array" ? (
                   <TextAreaField label={field.label} name="value" defaultValue={field.value} rows={4} />
+                ) : isSettingsImageField(field.key) ? (
+                  <ImageField label={field.label} name="value" defaultValue={field.value} folder={`settings/${field.key}`} />
                 ) : (
                   <Field label={field.label} name="value" defaultValue={field.value} />
                 )}
@@ -469,7 +490,7 @@ export default async function AdminPage({
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
                     <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
-                    <Field label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} />
+                    <ImageField label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} folder="pages/home/feature" />
                     <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
                   </>
                 }
@@ -483,7 +504,7 @@ export default async function AdminPage({
                   <>
                     <Field label="Story Eyebrow" name="storyEyebrow" defaultValue={asString(aboutPage.content.storyEyebrow)} />
                     <Field label="Story Title" name="storyTitle" defaultValue={asString(aboutPage.content.storyTitle)} />
-                    <Field label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} />
+                    <ImageField label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} folder="pages/about/story" />
                   </>
                 }
               />
@@ -543,8 +564,8 @@ export default async function AdminPage({
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Home Page</h3>
               <BasePageFields page={homePage} />
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <Field label="Hero Image" name="heroImage" defaultValue={asString(homePage.content.heroImage)} />
-                <Field label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} />
+                <ImageField label="Hero Image" name="heroImage" defaultValue={asString(homePage.content.heroImage)} folder="pages/home/hero" />
+                <ImageField label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} folder="pages/home/feature" />
                 <Field label="Hero Title" name="heroTitle" defaultValue={asString(homePage.content.heroTitle)} />
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(homePage.content.heroSubtitle)} rows={3} />
                 <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
@@ -578,7 +599,7 @@ export default async function AdminPage({
                 <Field label="Tours Eyebrow" name="toursEyebrow" defaultValue={asString(homePage.content.toursEyebrow)} />
                 <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
                 <TextAreaField label="Tours Description" name="toursDescription" defaultValue={asString(homePage.content.toursDescription)} rows={3} />
-                <Field label="Quote Image" name="quoteImage" defaultValue={asString(homePage.content.quoteImage)} />
+                <ImageField label="Quote Image" name="quoteImage" defaultValue={asString(homePage.content.quoteImage)} folder="pages/home/quote" />
                 <TextAreaField label="Quote Text" name="quoteText" defaultValue={asString(homePage.content.quoteText)} rows={4} />
                 <Field label="Testimonials Eyebrow" name="testimonialsEyebrow" defaultValue={asString(homePage.content.testimonialsEyebrow)} />
                 <Field label="Testimonials Title" name="testimonialsTitle" defaultValue={asString(homePage.content.testimonialsTitle)} />
@@ -597,8 +618,8 @@ export default async function AdminPage({
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">About Page</h3>
               <BasePageFields page={aboutPage} />
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <Field label="Hero Image" name="heroImage" defaultValue={asString(aboutPage.content.heroImage)} />
-                <Field label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} />
+                <ImageField label="Hero Image" name="heroImage" defaultValue={asString(aboutPage.content.heroImage)} folder="pages/about/hero" />
+                <ImageField label="Story Image" name="storyImage" defaultValue={asString(aboutPage.content.storyImage)} folder="pages/about/story" />
                 <Field label="Hero Title" name="heroTitle" defaultValue={asString(aboutPage.content.heroTitle)} />
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(aboutPage.content.heroSubtitle)} rows={3} />
                 <Field label="Story Eyebrow" name="storyEyebrow" defaultValue={asString(aboutPage.content.storyEyebrow)} />
@@ -626,7 +647,7 @@ export default async function AdminPage({
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Tours Index Page</h3>
               <BasePageFields page={toursPage} />
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <Field label="Hero Image" name="heroImage" defaultValue={asString(toursPage.content.heroImage)} />
+                <ImageField label="Hero Image" name="heroImage" defaultValue={asString(toursPage.content.heroImage)} folder="pages/tours/hero" />
                 <Field label="Hero Title" name="heroTitle" defaultValue={asString(toursPage.content.heroTitle)} />
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(toursPage.content.heroSubtitle)} rows={3} />
                 <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(toursPage.content.introEyebrow)} />
@@ -643,7 +664,7 @@ export default async function AdminPage({
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Blog Index Page</h3>
               <BasePageFields page={blogPage} />
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <Field label="Hero Image" name="heroImage" defaultValue={asString(blogPage.content.heroImage)} />
+                <ImageField label="Hero Image" name="heroImage" defaultValue={asString(blogPage.content.heroImage)} folder="pages/blog/hero" />
                 <Field label="Hero Title" name="heroTitle" defaultValue={asString(blogPage.content.heroTitle)} />
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(blogPage.content.heroSubtitle)} rows={3} />
                 <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(blogPage.content.introEyebrow)} />
@@ -660,7 +681,7 @@ export default async function AdminPage({
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Contact Page</h3>
               <BasePageFields page={contactPage} />
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <Field label="Hero Image" name="heroImage" defaultValue={asString(contactPage.content.heroImage)} />
+                <ImageField label="Hero Image" name="heroImage" defaultValue={asString(contactPage.content.heroImage)} folder="pages/contact/hero" />
                 <Field label="Hero Title" name="heroTitle" defaultValue={asString(contactPage.content.heroTitle)} />
                 <TextAreaField label="Hero Subtitle" name="heroSubtitle" defaultValue={asString(contactPage.content.heroSubtitle)} rows={3} />
                 <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(contactPage.content.introEyebrow)} />
@@ -909,14 +930,14 @@ export default async function AdminPage({
               <Field label="Title" name="title" defaultValue="" />
               <SelectField label="Status" name="status" defaultValue="draft" options={["draft", "published"]} />
               <Field label="Category" name="category" defaultValue="" />
-              <Field label="Featured Image URL" name="featured_image_url" defaultValue="" />
+              <ImageField label="Featured Image" name="featured_image_url" defaultValue="" folder="blog/featured" />
               <Field label="Published At" name="published_at" defaultValue="" />
             </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <TextAreaField label="Excerpt" name="excerpt" defaultValue="" rows={3} />
               <TextAreaField label="Meta Description" name="meta_description" defaultValue="" rows={3} />
               <Field label="Meta Title" name="meta_title" defaultValue="" />
-              <Field label="Meta Image URL" name="meta_image_url" defaultValue="" />
+              <ImageField label="Meta Image" name="meta_image_url" defaultValue="" folder="blog/meta" />
             </div>
             <div className="mt-4">
               <TextAreaField
@@ -938,7 +959,7 @@ export default async function AdminPage({
                   <Field label="Title" name="title" defaultValue={selectedBlogPost.title} />
                   <SelectField label="Status" name="status" defaultValue={selectedBlogPost.status ?? "published"} options={["draft", "published"]} />
                   <Field label="Category" name="category" defaultValue={selectedBlogPost.category} />
-                  <Field label="Featured Image URL" name="featured_image_url" defaultValue={selectedBlogPost.image} />
+                  <ImageField label="Featured Image" name="featured_image_url" defaultValue={selectedBlogPost.image} folder={`blog/${selectedBlogPost.slug}/featured`} />
                   <Field label="Published At" name="published_at" defaultValue={selectedBlogPost.publishedAt ?? ""} />
                 </div>
                 <div className="mt-4">
@@ -949,7 +970,7 @@ export default async function AdminPage({
                 </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-3">
                   <Field label="Meta Title" name="meta_title" defaultValue={selectedBlogPost.metaTitle ?? ""} />
-                  <Field label="Meta Image URL" name="meta_image_url" defaultValue={selectedBlogPost.metaImageUrl ?? ""} />
+                  <ImageField label="Meta Image" name="meta_image_url" defaultValue={selectedBlogPost.metaImageUrl ?? ""} folder={`blog/${selectedBlogPost.slug}/meta`} />
                 </div>
                 <div className="mt-4">
                   <TextAreaField label="Meta Description" name="meta_description" defaultValue={selectedBlogPost.metaDescription ?? ""} rows={3} />
