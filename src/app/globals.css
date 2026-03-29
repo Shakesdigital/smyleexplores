@@ -56,8 +56,8 @@ h6 {
 
 .hero-overlay {
   background:
-    linear-gradient(135deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.22)),
-    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.1));
+    linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.14)),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.06));
 }
 
 .pattern-grid {

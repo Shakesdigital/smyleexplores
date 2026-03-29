@@ -26,12 +26,12 @@ export function TourHeroSlider({ slides, fallbackTitle }: { slides: TourHeroSlid
           className={`absolute inset-0 transition-opacity duration-700 ${index === activeIndex ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <Image src={slide.image} alt={slide.title || fallbackTitle} fill priority={index === 0} className="object-cover" />
-          <div className="hero-overlay absolute inset-0 bg-black/45" />
+          <div className="hero-overlay absolute inset-0 bg-black/28" />
         </div>
       ))}
 
       <div className="container-shell relative flex min-h-[82vh] flex-col justify-end py-16 text-white">
-        <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/20 p-8 backdrop-blur-sm">
+        <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 backdrop-blur-[3px]">
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Destination Itinerary</div>
           <h1 className="mt-5 text-5xl font-black leading-tight md:text-7xl">{slides[activeIndex]?.title ?? fallbackTitle}</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-white/85 md:text-lg">
