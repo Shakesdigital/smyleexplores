@@ -122,7 +122,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
                     <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">Included</div>
                     <ul className="mt-3 space-y-2">
                       {tour.included.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}>- {item}</li>
                       ))}
                     </ul>
                   </div>
@@ -137,7 +137,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
                         "Optional add-on activities",
                         "Any service not specifically listed as included",
                       ].map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}>- {item}</li>
                       ))}
                     </ul>
                   </div>
@@ -146,11 +146,9 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
               <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
                 <h2 className="text-3xl font-black text-[var(--forest-deep)]">What to Bring</h2>
-                <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700">
+                <ul className="mt-6 space-y-2 text-sm leading-7 text-neutral-600">
                   {tour.bring.map((item) => (
-                    <li key={item} className="rounded-2xl bg-[var(--orange)]/10 px-5 py-4 font-medium text-[var(--charcoal)]">
-                      {item}
-                    </li>
+                    <li key={item}>- {item}</li>
                   ))}
                 </ul>
               </div>
