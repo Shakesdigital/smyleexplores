@@ -69,61 +69,63 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
             </div>
 
             <div className="mt-14 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-                <SectionHeading eyebrow="Itinerary" title="Day-by-day journey" description="The full itinerary is grouped into one continuous section for easier browsing." />
-                <div className="mt-8 space-y-8">
-                  {tour.itineraryDays.map((day) => (
-                    <article key={`${day.dayLabel}-${day.title}`} className="border-b border-black/5 pb-8 last:border-b-0 last:pb-0">
-                      <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">{day.dayLabel}</div>
-                      <h2 className="mt-3 text-2xl font-black text-[var(--forest-deep)]">{day.title}</h2>
-                      <p className="mt-4 text-sm leading-7 text-neutral-600">{day.description}</p>
-                      {day.activities.length ? (
-                        <ul className="mt-5 grid gap-3 text-sm leading-7 text-neutral-700">
-                          {day.activities.map((activity) => (
-                            <li key={`${day.dayLabel}-${activity}`} className="rounded-2xl bg-[var(--sand)] px-4 py-3">
-                              {activity}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </article>
-                  ))}
+              <div className="space-y-8">
+                <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+                  <SectionHeading eyebrow="Itinerary" title="Day-by-day journey" description="The full itinerary is grouped into one continuous section for easier browsing." />
+                  <div className="mt-8 space-y-8">
+                    {tour.itineraryDays.map((day) => (
+                      <article key={`${day.dayLabel}-${day.title}`} className="border-b border-black/5 pb-8 last:border-b-0 last:pb-0">
+                        <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">{day.dayLabel}</div>
+                        <h2 className="mt-3 text-2xl font-black text-[var(--forest-deep)]">{day.title}</h2>
+                        <p className="mt-4 text-sm leading-7 text-neutral-600">{day.description}</p>
+                        {day.activities.length ? (
+                          <ul className="mt-5 grid gap-3 text-sm leading-7 text-neutral-700">
+                            {day.activities.map((activity) => (
+                              <li key={`${day.dayLabel}-${activity}`} className="rounded-2xl bg-[var(--sand)] px-4 py-3">
+                                {activity}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </article>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+                  <h2 className="text-3xl font-black text-[var(--forest-deep)]">What to Bring</h2>
+                  <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700">
+                    {tour.bring.map((item) => (
+                      <li key={item} className="rounded-2xl bg-[var(--orange)]/10 px-5 py-4 font-medium text-[var(--charcoal)]">
+                        Bring: {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
-              <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-                <SectionHeading eyebrow="Trip Highlights" title="What this itinerary is built around" />
-                <ul className="mt-6 grid gap-4 text-sm leading-7 text-neutral-600">
-                  {tour.highlights.map((item) => (
-                    <li key={item} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+              <div className="space-y-8">
+                <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+                  <SectionHeading eyebrow="Trip Highlights" title="What this itinerary is built around" />
+                  <ul className="mt-6 grid gap-4 text-sm leading-7 text-neutral-600">
+                    {tour.highlights.map((item) => (
+                      <li key={item} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-            <div className="mt-10 grid gap-8 xl:grid-cols-2">
-              <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-                <h2 className="text-3xl font-black text-[var(--forest-deep)]">What's Included</h2>
-                <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700">
-                  {tour.included.map((item) => (
-                    <li key={item} className="rounded-2xl bg-[var(--forest)]/8 px-5 py-4 font-medium text-[var(--forest-deep)]">
-                      Included: {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-                <h2 className="text-3xl font-black text-[var(--forest-deep)]">What to Bring</h2>
-                <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700">
-                  {tour.bring.map((item) => (
-                    <li key={item} className="rounded-2xl bg-[var(--orange)]/10 px-5 py-4 font-medium text-[var(--charcoal)]">
-                      Bring: {item}
-                    </li>
-                  ))}
-                </ul>
+                <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+                  <h2 className="text-3xl font-black text-[var(--forest-deep)]">What's Included</h2>
+                  <ul className="mt-6 grid gap-3 text-sm leading-7 text-neutral-700">
+                    {tour.included.map((item) => (
+                      <li key={item} className="rounded-2xl bg-[var(--forest)]/8 px-5 py-4 font-medium text-[var(--forest-deep)]">
+                        Included: {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
