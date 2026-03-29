@@ -34,9 +34,6 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
   const [tour, allTours, settings] = await Promise.all([getTourBySlug(slug), getTours(), getSiteSettings()]);
   if (!tour) notFound();
 
-  const relatedTours = allTours.filter((item) => item.slug !== slug && tour.relatedTourSlugs.includes(item.slug));
-  const fallbackRelatedTours = allTours.filter((item) => item.slug !== slug).slice(0, 3);
-
   return (
     <main>
       <TourHeroSlider slides={tour.heroSlides.length ? tour.heroSlides : [{ image: tour.heroImage, title: tour.title, subtitle: tour.shortDescription }]} fallbackTitle={tour.title} />
@@ -159,8 +156,8 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
       <section className="section-space bg-white/70">
         <div className="container-shell">
-          <SectionHeading eyebrow="Related Tours" title="Keep exploring Uganda." />
-          <RelatedToursCarousel tours={relatedTours.length ? relatedTours : fallbackRelatedTours} />
+          <SectionHeading eyebrow="Related Tours" title="Keep exploring Uganda." description="Browse every published tour in the same swipeable carousel used on the homepage." />
+          <RelatedToursCarousel tours={allTours} showPrice={false} showHighlights={false} />
         </div>
       </section>
     </main>
