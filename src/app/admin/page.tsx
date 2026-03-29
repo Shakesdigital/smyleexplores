@@ -295,7 +295,7 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string }>;
 }) {
   if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
@@ -306,6 +306,8 @@ export default async function AdminPage({
       ? params.tab
       : "landing";
   const activeTourSlug = params?.tour;
+  const activePageSlug = params?.page;
+  const activePostSlug = params?.post;
   const dashboard = await getAdminDashboardData();
   const homePage = dashboard.pages.find((page) => page.slug === "home");
   const aboutPage = dashboard.pages.find((page) => page.slug === "about");
@@ -313,6 +315,9 @@ export default async function AdminPage({
   const blogPage = dashboard.pages.find((page) => page.slug === "blog");
   const contactPage = dashboard.pages.find((page) => page.slug === "contact");
   const selectedTour = dashboard.tours.find((tour) => tour.slug === activeTourSlug) ?? null;
+  const landingPages = [homePage, aboutPage, toursPage, blogPage, contactPage].filter((page): page is CmsPage => Boolean(page));
+  const selectedLandingPage = landingPages.find((page) => page.slug === activePageSlug) ?? null;
+  const selectedBlogPost = dashboard.blogPosts.find((post) => post.slug === activePostSlug) ?? null;
 
   const settingsFields = [
     { label: "Site Name", groupKey: "general", key: "site_name", value: dashboard.settings.siteName, type: "string" },
@@ -401,6 +406,35 @@ export default async function AdminPage({
           description="Focus on hero sections, landing-page copy, homepage support blocks, and site settings without unrelated tour or blog forms on screen."
         />
 
+        <section className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+          <h2 className="text-3xl font-black text-[var(--forest-deep)]">Existing Landing Pages</h2>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Open a specific landing page to edit the exact frontend content for that page.</p>
+          <div className="mt-6 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+            {landingPages.map((page) => (
+              <Link
+                key={`landing-link-${page.slug}`}
+                href={`/admin?tab=landing&page=${page.slug}`}
+                className="flex items-center justify-between rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/60"
+              >
+                <span>
+                  <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{page.slug}</span>
+                  <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{page.title}</span>
+                </span>
+                <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+                  Edit this Page
+                </span>
+              </Link>
+            ))}
+          </div>
+          {activePageSlug ? (
+            <div className="mt-6">
+              <Link href="/admin?tab=landing" className="rounded-full border border-black/10 px-5 py-3 text-sm font-bold text-[var(--charcoal)] transition hover:border-[var(--forest)] hover:text-[var(--forest)]">
+                Back to Landing Pages
+              </Link>
+            </div>
+          ) : null}
+        </section>
+
         <section id="settings-suite" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Settings Suite</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Grouped public settings for branding, contact, and SEO defaults.</p>
@@ -422,11 +456,12 @@ export default async function AdminPage({
           </div>
         </section>
 
+        {selectedLandingPage ? (
         <section id="hero-editors" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Hero Editors</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">Quick access to the main landing page hero images and headlines.</p>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Quick access to the hero image and headline content for the selected landing page.</p>
           <div className="mt-8 grid gap-6 xl:grid-cols-2">
-            {homePage ? (
+            {selectedLandingPage.slug === "home" && homePage ? (
               <HeroEditor
                 page={homePage}
                 label="Home Hero"
@@ -440,7 +475,7 @@ export default async function AdminPage({
                 }
               />
             ) : null}
-            {aboutPage ? (
+            {selectedLandingPage.slug === "about" && aboutPage ? (
               <HeroEditor
                 page={aboutPage}
                 label="About Hero"
@@ -453,7 +488,7 @@ export default async function AdminPage({
                 }
               />
             ) : null}
-            {toursPage ? (
+            {selectedLandingPage.slug === "tours" && toursPage ? (
               <HeroEditor
                 page={toursPage}
                 label="Tours Hero"
@@ -466,7 +501,7 @@ export default async function AdminPage({
                 }
               />
             ) : null}
-            {blogPage ? (
+            {selectedLandingPage.slug === "blog" && blogPage ? (
               <HeroEditor
                 page={blogPage}
                 label="Blog Hero"
@@ -479,14 +514,30 @@ export default async function AdminPage({
                 }
               />
             ) : null}
+            {selectedLandingPage.slug === "contact" && contactPage ? (
+              <HeroEditor
+                page={contactPage}
+                label="Contact Hero"
+                extraFields={
+                  <>
+                    <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(contactPage.content.introEyebrow)} />
+                    <Field label="Intro Title" name="introTitle" defaultValue={asString(contactPage.content.introTitle)} />
+                    <Field label="Quote Eyebrow" name="quoteEyebrow" defaultValue={asString(contactPage.content.quoteEyebrow)} />
+                    <Field label="Quote Title" name="quoteTitle" defaultValue={asString(contactPage.content.quoteTitle)} />
+                  </>
+                }
+              />
+            ) : null}
           </div>
         </section>
+        ) : null}
 
+        {selectedLandingPage ? (
         <section id="page-editors" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Frontend Page Editors</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">These forms reflect the sections visitors see on the site, rather than generic JSON blobs.</p>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">These forms reflect the sections visitors see on the selected page, rather than generic JSON blobs.</p>
 
-          {homePage ? (
+          {selectedLandingPage.slug === "home" && homePage ? (
             <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
               <input type="hidden" name="slug" value="home" />
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Home Page</h3>
@@ -540,7 +591,7 @@ export default async function AdminPage({
             </form>
           ) : null}
 
-          {aboutPage ? (
+          {selectedLandingPage.slug === "about" && aboutPage ? (
             <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
               <input type="hidden" name="slug" value="about" />
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">About Page</h3>
@@ -569,7 +620,7 @@ export default async function AdminPage({
             </form>
           ) : null}
 
-          {toursPage ? (
+          {selectedLandingPage.slug === "tours" && toursPage ? (
             <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
               <input type="hidden" name="slug" value="tours" />
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Tours Index Page</h3>
@@ -586,7 +637,7 @@ export default async function AdminPage({
             </form>
           ) : null}
 
-          {blogPage ? (
+          {selectedLandingPage.slug === "blog" && blogPage ? (
             <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
               <input type="hidden" name="slug" value="blog" />
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Blog Index Page</h3>
@@ -603,7 +654,7 @@ export default async function AdminPage({
             </form>
           ) : null}
 
-          {contactPage ? (
+          {selectedLandingPage.slug === "contact" && contactPage ? (
             <form action={upsertPageAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
               <input type="hidden" name="slug" value="contact" />
               <h3 className="text-2xl font-black text-[var(--forest-deep)]">Contact Page</h3>
@@ -621,6 +672,7 @@ export default async function AdminPage({
             </form>
           ) : null}
         </section>
+        ) : null}
         <section className="grid gap-6 xl:grid-cols-2">
           <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
             <h2 className="text-3xl font-black text-[var(--forest-deep)]">Testimonials</h2>
@@ -821,7 +873,35 @@ export default async function AdminPage({
 
         <section id="blog-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Blog Posts</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">Manage the blog card layout and create new blog entries with title, image, category, excerpt, publishing, and SEO.</p>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Open an existing post to edit it, or start a new post from a dedicated creation action.</p>
+          <div className="mt-6 grid gap-3 lg:grid-cols-2">
+            {dashboard.blogPosts.map((post) => (
+              <Link
+                key={`blog-link-${post.slug}`}
+                href={`/admin?tab=blog&post=${post.slug}`}
+                className="flex items-center justify-between rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/60"
+              >
+                <span>
+                  <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{post.category}</span>
+                  <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{post.title}</span>
+                </span>
+                <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+                  Edit this Post
+                </span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href="/admin?tab=blog&post=new" className="rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]">
+              Add a Blog Post
+            </Link>
+            {activePostSlug ? (
+              <Link href="/admin?tab=blog" className="rounded-full border border-black/10 px-5 py-3 text-sm font-bold text-[var(--charcoal)] transition hover:border-[var(--forest)] hover:text-[var(--forest)]">
+                Back to Blog List
+              </Link>
+            ) : null}
+          </div>
+          {activePostSlug === "new" ? (
           <form action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
             <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Blog Post</h3>
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -849,34 +929,34 @@ export default async function AdminPage({
             </div>
             <SaveButton>Create Blog Post</SaveButton>
           </form>
-          <div className="mt-8 space-y-8">
-            {dashboard.blogPosts.map((post) => (
-              <form key={post.slug} action={upsertBlogPostAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+          ) : null}
+          {selectedBlogPost ? (
+              <form key={selectedBlogPost.slug} action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+                <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedBlogPost.title}</h3>
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <Field label="Slug" name="slug" defaultValue={post.slug} />
-                  <Field label="Title" name="title" defaultValue={post.title} />
-                  <SelectField label="Status" name="status" defaultValue={post.status ?? "published"} options={["draft", "published"]} />
-                  <Field label="Category" name="category" defaultValue={post.category} />
-                  <Field label="Featured Image URL" name="featured_image_url" defaultValue={post.image} />
-                  <Field label="Published At" name="published_at" defaultValue={post.publishedAt ?? ""} />
+                  <Field label="Slug" name="slug" defaultValue={selectedBlogPost.slug} />
+                  <Field label="Title" name="title" defaultValue={selectedBlogPost.title} />
+                  <SelectField label="Status" name="status" defaultValue={selectedBlogPost.status ?? "published"} options={["draft", "published"]} />
+                  <Field label="Category" name="category" defaultValue={selectedBlogPost.category} />
+                  <Field label="Featured Image URL" name="featured_image_url" defaultValue={selectedBlogPost.image} />
+                  <Field label="Published At" name="published_at" defaultValue={selectedBlogPost.publishedAt ?? ""} />
                 </div>
                 <div className="mt-4">
-                  <TextAreaField label="Excerpt" name="excerpt" defaultValue={post.excerpt} rows={3} />
+                  <TextAreaField label="Excerpt" name="excerpt" defaultValue={selectedBlogPost.excerpt} rows={3} />
                 </div>
                 <div className="mt-4">
-                  <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(post.content ?? {})} rows={10} mono />
+                  <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(selectedBlogPost.content ?? {})} rows={10} mono />
                 </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <Field label="Meta Title" name="meta_title" defaultValue={post.metaTitle ?? ""} />
-                  <Field label="Meta Image URL" name="meta_image_url" defaultValue={post.metaImageUrl ?? ""} />
+                  <Field label="Meta Title" name="meta_title" defaultValue={selectedBlogPost.metaTitle ?? ""} />
+                  <Field label="Meta Image URL" name="meta_image_url" defaultValue={selectedBlogPost.metaImageUrl ?? ""} />
                 </div>
                 <div className="mt-4">
-                  <TextAreaField label="Meta Description" name="meta_description" defaultValue={post.metaDescription ?? ""} rows={3} />
+                  <TextAreaField label="Meta Description" name="meta_description" defaultValue={selectedBlogPost.metaDescription ?? ""} rows={3} />
                 </div>
                 <SaveButton>Save Post</SaveButton>
               </form>
-            ))}
-          </div>
+          ) : null}
         </section>
           </>
         ) : null}
