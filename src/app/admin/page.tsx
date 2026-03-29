@@ -671,15 +671,27 @@ export default async function AdminPage({
           <>
         <WorkspaceHeader
           eyebrow="Tour Pages"
-          title="Manage itinerary pages"
-          description="Create new destination tours or edit existing itinerary pages in one focused workspace."
+          title="Manage destination tours"
+          description="Open the current tours, edit each live itinerary, or start a new tour entry from one focused workspace."
         />
 
         <section id="tour-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Destination Tour Editors</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">
-            Choose an existing tour to edit it, or start a new itinerary with the dedicated action button.
+            Choose one of the existing tours to make changes, or start a new itinerary with the dedicated action button.
           </p>
+          <div className="mt-6">
+            <Link
+              href="#existing-tours"
+              className="inline-flex items-center gap-3 rounded-[1.5rem] border border-black/5 bg-[var(--sand)]/45 px-5 py-4 text-left transition hover:border-[var(--forest)]/30 hover:bg-[var(--sand)]/75"
+            >
+              <span className="text-3xl font-black text-[var(--forest-deep)]">{dashboard.tours.length}</span>
+              <span>
+                <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">Current Tours</span>
+                <span className="block text-sm font-semibold text-neutral-600">Open the existing five tours and jump to the editor you need.</span>
+              </span>
+            </Link>
+          </div>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/admin?tab=tours&tour=new" className="rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]">
               Add a Tour
@@ -691,10 +703,10 @@ export default async function AdminPage({
             ) : null}
           </div>
 
-          <div className="mt-8 grid gap-4 xl:grid-cols-2">
+          <div id="existing-tours" className="mt-8 grid gap-5 xl:grid-cols-2">
             {dashboard.tours.map((tour) => (
-              <article key={tour.slug} className="rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/45 p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <article key={tour.slug} className="rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/45 p-6 shadow-sm">
+                <div className="flex h-full flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{tour.destination}</div>
                     <h3 className="mt-2 text-2xl font-black text-[var(--forest-deep)]">{tour.title}</h3>
@@ -704,8 +716,8 @@ export default async function AdminPage({
                       <span>{tour.status ?? "published"}</span>
                     </div>
                   </div>
-                  <Link href={`/admin?tab=tours&tour=${tour.slug}`} className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
-                    Edit Tour
+                  <Link href={`/admin?tab=tours&tour=${tour.slug}`} className="mt-auto rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+                    Edit this Tour
                   </Link>
                 </div>
               </article>
