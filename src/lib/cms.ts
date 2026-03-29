@@ -15,6 +15,7 @@ import {
 } from "@/lib/content";
 import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase";
 import {
+  AdminAccessSummary,
   BlogPost,
   CmsPage,
   NavItem,
@@ -541,17 +542,22 @@ export async function getAdminDashboardData() {
         { label: "Blog Posts", value: publicBlogPosts.length },
         { label: "Submissions", value: 0 },
       ],
+      adminAccess: {
+        username: process.env.CMS_ADMIN_USERNAME?.trim() || "admin",
+        source: process.env.CMS_ADMIN_PASSWORD ? "environment" : "unconfigured",
+      } as AdminAccessSummary,
       hasServiceRole: false,
     };
   }
 
-  const [pagesResult, blogResult, testimonialsResult, valuesResult, contactResult, quoteResult] = await Promise.all([
+  const [pagesResult, blogResult, testimonialsResult, valuesResult, contactResult, quoteResult, adminAccessResult] = await Promise.all([
     client.from("pages").select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at").order("slug", { ascending: true }),
     client.from("blog_posts").select("id,slug,title,excerpt,content,category,featured_image_url,status,meta_title,meta_description,meta_image_url,published_at").order("published_at", { ascending: false }),
     client.from("testimonials").select("id,name,title,quote").order("order_column", { ascending: true }),
     client.from("company_values").select("id,title,description,icon").order("order_column", { ascending: true }),
     client.from("contact_submissions").select("id,name,email,phone,subject,message,status,created_at").order("created_at", { ascending: false }).limit(10),
     client.from("quote_requests").select("id,name,email,phone,guests,preferred_tour,special_requests,status,created_at").order("created_at", { ascending: false }).limit(10),
+    client.from("admin_accounts").select("username").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
   const toursRows = await fetchAdminTourRows(client);
 
@@ -594,6 +600,15 @@ export async function getAdminDashboardData() {
     summary: `${row.guests} guests${row.preferred_tour ? `, preferred tour: ${row.preferred_tour}` : ""}${row.special_requests ? `, notes: ${row.special_requests}` : ""}`,
     createdAt: row.created_at,
   }));
+  const adminAccess = adminAccessResult.data?.username
+    ? ({
+        username: adminAccessResult.data.username,
+        source: "database",
+      } as AdminAccessSummary)
+    : ({
+        username: process.env.CMS_ADMIN_USERNAME?.trim() || "admin",
+        source: process.env.CMS_ADMIN_PASSWORD ? "environment" : "unconfigured",
+      } as AdminAccessSummary);
 
   return {
     settings,
@@ -611,6 +626,7 @@ export async function getAdminDashboardData() {
       { label: "Blog Posts", value: blogPosts.length },
       { label: "Submissions", value: contactSubmissions.length + quoteRequests.length },
     ],
+    adminAccess,
     hasServiceRole: true,
   };
 }

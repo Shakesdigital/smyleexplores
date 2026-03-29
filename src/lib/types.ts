@@ -134,3 +134,8 @@ export type SubmissionRecord = {
   summary: string;
   createdAt: string;
 };
+
+export type AdminAccessSummary = {
+  username: string;
+  source: "database" | "environment" | "unconfigured";
+};

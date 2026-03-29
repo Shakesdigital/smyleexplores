@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { aboutStory, whyChooseUs } from "@/lib/content";
 import { getAdminDashboardData } from "@/lib/cms";
-import { hasCmsAdminPassword, isAdminSessionValid } from "@/lib/admin-session";
+import { isAdminSessionValid } from "@/lib/admin-session";
 import { CmsPage, Tour } from "@/lib/types";
 
 import {
   logoutAdminAction,
   updateSubmissionStatusAction,
+  updateAdminCredentialsAction,
   upsertBlogPostAction,
   upsertCompanyValueAction,
   upsertPageAction,
@@ -396,7 +397,6 @@ export default async function AdminPage({
 }: {
   searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; slides?: string; pageSlides?: string; removeSlide?: string; removePageSlide?: string }>;
 }) {
-  if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
 
   const params = searchParams ? await searchParams : undefined;
@@ -568,6 +568,38 @@ export default async function AdminPage({
         <section id="settings-suite" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Settings Suite</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Grouped public settings for branding, contact, and SEO defaults.</p>
+          <div className="mt-8 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/45 p-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl">
+                <h3 className="text-2xl font-black text-[var(--forest-deep)]">Admin Access</h3>
+                <p className="mt-2 text-sm leading-7 text-neutral-600">
+                  Change the CMS login username and password here instead of updating environment configuration. The current active login source is{" "}
+                  <span className="font-bold text-[var(--forest)]">{dashboard.adminAccess.source}</span>.
+                </p>
+              </div>
+              <div className="rounded-full border border-[var(--forest)]/20 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+                Current username: {dashboard.adminAccess.username}
+              </div>
+            </div>
+            <form action={updateAdminCredentialsAction} className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <label className="block text-sm font-semibold text-neutral-700">
+                Current Password
+                <input name="current_password" type="password" required className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
+              </label>
+              <Field label="New Username" name="username" defaultValue={dashboard.adminAccess.username} />
+              <label className="block text-sm font-semibold text-neutral-700">
+                New Password
+                <input name="new_password" type="password" required className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
+              </label>
+              <label className="block text-sm font-semibold text-neutral-700">
+                Confirm New Password
+                <input name="confirm_password" type="password" required className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3" />
+              </label>
+              <div className="md:col-span-2 xl:col-span-4">
+                <SaveButton>Update Admin Access</SaveButton>
+              </div>
+            </form>
+          </div>
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
             {settingsFields.map((field) => (
               <form key={field.key} action={upsertSettingAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">

@@ -4,7 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-import { clearAdminSession, createAdminSession, isAdminSessionValid } from "@/lib/admin-session";
+import {
+  clearAdminSession,
+  createAdminSession,
+  createAdminSessionSecret,
+  createPasswordHash,
+  getConfiguredAdminAccess,
+  isAdminSessionValid,
+  verifyAdminCredentials,
+} from "@/lib/admin-session";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase";
 
 function parseLines(value: FormDataEntryValue | null) {
@@ -276,16 +284,11 @@ async function upsertTourWithSchemaFallback(
 
 export async function loginAdminAction(formData: FormData) {
   try {
+    const username = String(formData.get("username") ?? "");
     const password = String(formData.get("password") ?? "");
-    if (!process.env.CMS_ADMIN_PASSWORD) {
-      throw new Error("CMS_ADMIN_PASSWORD is not configured.");
-    }
+    const config = await verifyAdminCredentials(username, password);
 
-    if (password !== process.env.CMS_ADMIN_PASSWORD) {
-      throw new Error("Incorrect admin password.");
-    }
-
-    await createAdminSession();
+    await createAdminSession(config.sessionSecret);
     redirect("/admin?success=Signed%20in%20successfully.");
   } catch (error) {
     if (isRedirectError(error)) throw error;
@@ -297,6 +300,60 @@ export async function loginAdminAction(formData: FormData) {
 export async function logoutAdminAction() {
   await clearAdminSession();
   redirect("/admin/login");
+}
+
+export async function updateAdminCredentialsAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const currentPassword = String(formData.get("current_password") ?? "");
+    const nextUsername = String(formData.get("username") ?? "").trim();
+    const nextPassword = String(formData.get("new_password") ?? "");
+    const confirmPassword = String(formData.get("confirm_password") ?? "");
+    const currentConfig = await getConfiguredAdminAccess();
+
+    if (!currentConfig) {
+      throw new Error("Admin access is not configured yet.");
+    }
+
+    if (nextUsername.length < 3) {
+      throw new Error("Username must be at least 3 characters.");
+    }
+
+    if (nextPassword.length < 8) {
+      throw new Error("Password must be at least 8 characters.");
+    }
+
+    if (nextPassword !== confirmPassword) {
+      throw new Error("New password and confirmation do not match.");
+    }
+
+    await verifyAdminCredentials(currentConfig.username, currentPassword);
+
+    const passwordHash = createPasswordHash(nextPassword);
+    const existing = await client.from("admin_accounts").select("id").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+
+    if (existing.data?.id) {
+      const { error } = await client
+        .from("admin_accounts")
+        .update({ username: nextUsername, password_hash: passwordHash, updated_at: new Date().toISOString() })
+        .eq("id", existing.data.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("admin_accounts").insert({ username: nextUsername, password_hash: passwordHash });
+      if (error) throw new Error(error.message);
+    }
+
+    await createAdminSession(createAdminSessionSecret(nextUsername, passwordHash));
+    revalidatePath("/admin");
+    redirectWithMessage("success", "Updated admin login credentials.");
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : "Failed to update admin credentials.";
+    redirectWithMessage("error", message);
+  }
 }
 
 export async function upsertSettingAction(formData: FormData) {
