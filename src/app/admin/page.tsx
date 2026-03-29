@@ -177,9 +177,9 @@ function BasePageFields({ page }: { page: CmsPage }) {
   );
 }
 
-function TourEditor({ tour }: { tour: Tour }) {
+function TourEditor({ tour, minimumSlideCount = 4 }: { tour: Tour; minimumSlideCount?: number }) {
   const slides = [...tour.heroSlides];
-  while (slides.length < 4) slides.push({ image: "", title: "", subtitle: "" });
+  while (slides.length < minimumSlideCount) slides.push({ image: "", title: "", subtitle: "" });
 
   const itineraryDays = [...tour.itineraryDays];
   while (itineraryDays.length < 5) {
@@ -220,8 +220,15 @@ function TourEditor({ tour }: { tour: Tour }) {
       </div>
 
       <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
-        <h3 className="text-xl font-black text-[var(--forest-deep)]">Hero Slides</h3>
-        <p className="mt-2 text-sm leading-7 text-neutral-600">These cards map directly to the rotating hero slides on the tour page.</p>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-xl font-black text-[var(--forest-deep)]">Hero Slides</h3>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">These cards map directly to the rotating hero slides on the tour page.</p>
+          </div>
+          <div className="rounded-full border border-[var(--forest)]/20 bg-[var(--forest)]/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+            {slides.length} slide slots
+          </div>
+        </div>
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
           {slides.map((slide, index) => (
             <div key={`${tour.slug}-slide-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
@@ -314,7 +321,7 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; slides?: string }>;
 }) {
   if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
@@ -327,6 +334,7 @@ export default async function AdminPage({
   const activeTourSlug = params?.tour;
   const activePageSlug = params?.page;
   const activePostSlug = params?.post;
+  const requestedSlideCount = Number(params?.slides ?? "0");
   const dashboard = await getAdminDashboardData();
   const homePage = dashboard.pages.find((page) => page.slug === "home");
   const aboutPage = dashboard.pages.find((page) => page.slug === "about");
@@ -334,6 +342,8 @@ export default async function AdminPage({
   const blogPage = dashboard.pages.find((page) => page.slug === "blog");
   const contactPage = dashboard.pages.find((page) => page.slug === "contact");
   const selectedTour = dashboard.tours.find((tour) => tour.slug === activeTourSlug) ?? null;
+  const selectedTourSlideCount = Math.max(selectedTour?.heroSlides.length ?? 0, requestedSlideCount || 0, 4);
+  const newTourSlideCount = Math.max(requestedSlideCount || 0, 4);
   const landingPages = [homePage, aboutPage, toursPage, blogPage, contactPage].filter((page): page is CmsPage => Boolean(page));
   const selectedLandingPage = landingPages.find((page) => page.slug === activePageSlug) ?? null;
   const selectedBlogPost = dashboard.blogPosts.find((post) => post.slug === activePostSlug) ?? null;
@@ -835,10 +845,21 @@ export default async function AdminPage({
 
           {activeTourSlug === "new" ? (
             <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
-              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Create New Tour</h3>
-              <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-[var(--forest-deep)]">Create New Tour</h3>
+                  <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
+                </div>
+                <Link
+                  href={`/admin?tab=tours&tour=new&slides=${newTourSlideCount + 1}`}
+                  className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+                >
+                  Add Another Hero Slide
+                </Link>
+              </div>
               <div className="mt-4">
               <TourEditor
+                minimumSlideCount={newTourSlideCount}
                 tour={{
                   slug: "",
                   title: "",
@@ -873,10 +894,20 @@ export default async function AdminPage({
 
           {selectedTour ? (
             <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
-              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
-              <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
+                </div>
+                <Link
+                  href={`/admin?tab=tours&tour=${selectedTour.slug}&slides=${selectedTourSlideCount + 1}`}
+                  className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+                >
+                  Add Another Hero Slide
+                </Link>
+              </div>
               <div className="mt-4">
-                <TourEditor tour={selectedTour} />
+                <TourEditor tour={selectedTour} minimumSlideCount={selectedTourSlideCount} />
               </div>
             </div>
           ) : null}
