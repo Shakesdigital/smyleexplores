@@ -117,7 +117,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
               <div className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-8 shadow-soft">
                 <h2 className="text-3xl font-black text-[var(--forest-deep)]">What's Included and Excluded</h2>
-                <div className="mt-6 space-y-6 text-sm leading-7 text-neutral-600">
+                <div className="mt-6 grid gap-6 text-sm leading-7 text-neutral-600 md:grid-cols-2">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">Included</div>
                     <ul className="mt-3 space-y-2">
@@ -129,9 +129,17 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
                   <div>
                     <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">Excluded</div>
-                    <p className="mt-3">
-                      Flights, visas, travel insurance, personal expenses, and any optional add-ons not specifically listed in the included section are handled separately.
-                    </p>
+                    <ul className="mt-3 space-y-2">
+                      {[
+                        "Flights and visa costs",
+                        "Travel insurance",
+                        "Personal expenses",
+                        "Optional add-on activities",
+                        "Any service not specifically listed as included",
+                      ].map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
