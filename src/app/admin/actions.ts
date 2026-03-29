@@ -446,6 +446,7 @@ export async function upsertTestimonialAction(formData: FormData) {
       name: String(formData.get("name") ?? ""),
       title: optionalValue(formData.get("title")),
       quote: String(formData.get("quote") ?? ""),
+      photo_url: optionalValue(formData.get("photo_url")),
       order_column: Number(String(formData.get("order_column") ?? "0")) || 0,
     };
 
@@ -459,6 +460,28 @@ export async function upsertTestimonialAction(formData: FormData) {
   } catch (error) {
     if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save testimonial.";
+    redirectWithMessage("error", message);
+  }
+}
+
+export async function deleteTestimonialAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = String(formData.get("id") ?? "");
+    if (!id) throw new Error("Missing testimonial id.");
+
+    const { error } = await client.from("testimonials").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    redirectWithMessage("success", "Deleted testimonial.");
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : "Failed to delete testimonial.";
     redirectWithMessage("error", message);
   }
 }

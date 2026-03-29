@@ -99,6 +99,7 @@ type TestimonialRow = {
   name: string;
   title: string | null;
   quote: string;
+  photo_url: string | null;
 };
 
 type TeamMemberRow = {
@@ -464,7 +465,7 @@ export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTestimonials;
 
-  const { data } = await client.from("testimonials").select("id,name,title,quote").order("order_column", { ascending: true });
+  const { data } = await client.from("testimonials").select("id,name,title,quote,photo_url").order("order_column", { ascending: true });
   if (!data?.length) return fallbackTestimonials;
 
   return (data as TestimonialRow[]).map((row) => ({
@@ -472,6 +473,7 @@ export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
     name: row.name,
     title: row.title ?? "",
     quote: row.quote,
+    image: row.photo_url ?? "",
   }));
 });
 
@@ -553,7 +555,7 @@ export async function getAdminDashboardData() {
   const [pagesResult, blogResult, testimonialsResult, valuesResult, contactResult, quoteResult, adminAccessResult] = await Promise.all([
     client.from("pages").select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at").order("slug", { ascending: true }),
     client.from("blog_posts").select("id,slug,title,excerpt,content,category,featured_image_url,status,meta_title,meta_description,meta_image_url,published_at").order("published_at", { ascending: false }),
-    client.from("testimonials").select("id,name,title,quote").order("order_column", { ascending: true }),
+    client.from("testimonials").select("id,name,title,quote,photo_url").order("order_column", { ascending: true }),
     client.from("company_values").select("id,title,description,icon").order("order_column", { ascending: true }),
     client.from("contact_submissions").select("id,name,email,phone,subject,message,status,created_at").order("created_at", { ascending: false }).limit(10),
     client.from("quote_requests").select("id,name,email,phone,guests,preferred_tour,special_requests,status,created_at").order("created_at", { ascending: false }).limit(10),
@@ -570,6 +572,7 @@ export async function getAdminDashboardData() {
         name: row.name,
         title: row.title ?? "",
         quote: row.quote,
+        image: row.photo_url ?? "",
       }))
     : fallbackTestimonials;
   const companyValues = valuesResult.data?.length

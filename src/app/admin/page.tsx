@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -9,6 +10,7 @@ import { isAdminSessionValid } from "@/lib/admin-session";
 import { CmsPage, Tour } from "@/lib/types";
 
 import {
+  deleteTestimonialAction,
   logoutAdminAction,
   updateSubmissionStatusAction,
   updateAdminCredentialsAction,
@@ -475,9 +477,6 @@ export default async function AdminPage({
           <div>
             <div className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--orange-soft)]">Backend CMS</div>
             <h1 className="mt-3 text-4xl font-black">Smyle Explores content operations</h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/75">
-              This CMS now mirrors the frontend more directly: destination pages, itinerary sections, hero slides, booking content, core pages, and submission review all map to the live site.
-            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/" className="rounded-full border border-white/15 px-5 py-3 text-sm font-bold text-white transition hover:border-white">
@@ -624,7 +623,7 @@ export default async function AdminPage({
         <section id="hero-editors" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Hero Editors</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Quick access to the hero image and headline content for the selected landing page.</p>
-          <div className="mt-8 grid gap-6 xl:grid-cols-2">
+          <div className={`mt-8 grid gap-6 ${selectedLandingPage?.slug === "home" ? "xl:grid-cols-1" : "xl:grid-cols-2"}`}>
             {selectedLandingPage.slug === "home" && homePage ? (
               <HeroEditor
                 page={homePage}
@@ -858,17 +857,50 @@ export default async function AdminPage({
           <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
             <h2 className="text-3xl font-black text-[var(--forest-deep)]">Testimonials</h2>
             <p className="mt-2 text-sm leading-7 text-neutral-600">These records map directly to the testimonial cards on the homepage.</p>
+            <form action={upsertTestimonialAction} className="mt-6 rounded-2xl border border-dashed border-[var(--forest)]/25 bg-[var(--sand)]/35 p-5">
+              <div className="text-sm font-bold uppercase tracking-[0.18em] text-[var(--orange)]">Add Testimonial</div>
+              <input type="hidden" name="order_column" value={String(dashboard.testimonials.length)} />
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Name" name="name" defaultValue="" />
+                <Field label="Subtitle" name="title" defaultValue="" />
+                <ImageField label="Profile Picture" name="photo_url" defaultValue="" folder="testimonials" />
+              </div>
+              <div className="mt-4">
+                <TextAreaField label="Quote" name="quote" defaultValue="" rows={4} />
+              </div>
+              <SaveButton>Add Testimonial</SaveButton>
+            </form>
             <div className="mt-8 space-y-6">
               {dashboard.testimonials.map((testimonial, index) => (
                 <form key={testimonial.id ?? testimonial.name} action={upsertTestimonialAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Testimonial {index + 1}</div>
+                    {testimonial.id ? (
+                      <button
+                        type="submit"
+                        formAction={deleteTestimonialAction}
+                        className="rounded-full border border-red-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
                   {testimonial.id ? <input type="hidden" name="id" value={testimonial.id} /> : null}
                   <input type="hidden" name="order_column" value={String(index)} />
-                  <Field label="Name" name="name" defaultValue={testimonial.name} />
-                  <div className="mt-3">
-                    <Field label="Subtitle" name="title" defaultValue={testimonial.title} />
-                  </div>
-                  <div className="mt-3">
-                    <TextAreaField label="Quote" name="quote" defaultValue={testimonial.quote} rows={5} />
+                  <div className="mt-4 grid gap-4 lg:grid-cols-[180px_1fr]">
+                    <div className="space-y-3">
+                      <ImageField label="Profile Picture" name="photo_url" defaultValue={testimonial.image ?? ""} folder="testimonials" />
+                      {testimonial.image ? (
+                        <div className="relative h-24 w-24 overflow-hidden rounded-full border border-black/5">
+                          <Image src={testimonial.image} alt={testimonial.name} fill className="object-cover" />
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="space-y-3">
+                      <Field label="Name" name="name" defaultValue={testimonial.name} />
+                      <Field label="Subtitle" name="title" defaultValue={testimonial.title} />
+                      <TextAreaField label="Quote" name="quote" defaultValue={testimonial.quote} rows={5} />
+                    </div>
                   </div>
                   <SaveButton>Save Testimonial</SaveButton>
                 </form>

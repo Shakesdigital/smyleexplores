@@ -91,6 +91,7 @@ export type Testimonial = {
   name: string;
   title: string;
   quote: string;
+  image?: string;
 };
 
 export type TeamMember = {

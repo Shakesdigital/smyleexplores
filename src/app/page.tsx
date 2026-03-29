@@ -119,11 +119,24 @@ export default async function HomePage() {
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {testimonials.map((testimonial) => (
               <article key={testimonial.name} className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
+                {testimonial.image ? (
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-full border border-black/5">
+                      <Image src={testimonial.image} alt={testimonial.name} fill className="object-cover" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-black">{testimonial.name}</div>
+                      <div className="text-sm text-neutral-500">{testimonial.title}</div>
+                    </div>
+                  </div>
+                ) : null}
                 <p className="text-base leading-8 text-neutral-600">&ldquo;{testimonial.quote}&rdquo;</p>
-                <div className="mt-6">
-                  <div className="text-lg font-black">{testimonial.name}</div>
-                  <div className="text-sm text-neutral-500">{testimonial.title}</div>
-                </div>
+                {!testimonial.image ? (
+                  <div className="mt-6">
+                    <div className="text-lg font-black">{testimonial.name}</div>
+                    <div className="text-sm text-neutral-500">{testimonial.title}</div>
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>

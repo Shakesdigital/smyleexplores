@@ -56,18 +56,21 @@ export const testimonials: Testimonial[] = [
     title: "Adventure Traveler, Nairobi",
     quote:
       "The itinerary felt considered from the first transfer to the final activity. Smyle Explores made Uganda feel exciting and easy to navigate.",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80",
   },
   {
     name: "Daniel K.",
     title: "Family Traveler, Kampala",
     quote:
       "Our guide understood how to balance wildlife, comfort, and timing. The whole trip felt personal rather than packaged.",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
   },
   {
     name: "Sophie M.",
     title: "Couples Getaway, London",
     quote:
       "We loved that every destination had its own pace and character. It felt curated, not copied from a generic safari template.",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=600&q=80",
   },
 ];
 
