@@ -295,7 +295,7 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string; tab?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string }>;
 }) {
   if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
@@ -305,12 +305,14 @@ export default async function AdminPage({
     params?.tab === "tours" || params?.tab === "blog" || params?.tab === "submissions" || params?.tab === "landing"
       ? params.tab
       : "landing";
+  const activeTourSlug = params?.tour;
   const dashboard = await getAdminDashboardData();
   const homePage = dashboard.pages.find((page) => page.slug === "home");
   const aboutPage = dashboard.pages.find((page) => page.slug === "about");
   const toursPage = dashboard.pages.find((page) => page.slug === "tours");
   const blogPage = dashboard.pages.find((page) => page.slug === "blog");
   const contactPage = dashboard.pages.find((page) => page.slug === "contact");
+  const selectedTour = dashboard.tours.find((tour) => tour.slug === activeTourSlug) ?? null;
 
   const settingsFields = [
     { label: "Site Name", groupKey: "general", key: "site_name", value: dashboard.settings.siteName, type: "string" },
@@ -676,12 +678,45 @@ export default async function AdminPage({
         <section id="tour-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Destination Tour Editors</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">
-            Each tour form maps directly to the live landing page: hero slides, overview, itinerary days, highlights, packing list, booking copy, and SEO. You can also create new tours here.
+            Choose an existing tour to edit it, or start a new itinerary with the dedicated action button.
           </p>
-          <div className="mt-8">
-            <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Tour</h3>
-            <p className="mt-2 text-sm leading-7 text-neutral-600">Create a new destination tour, then refine it in the same layout used by the live frontend.</p>
-            <div className="mt-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href="/admin?tab=tours&tour=new" className="rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]">
+              Add a Tour
+            </Link>
+            {activeTourSlug ? (
+              <Link href="/admin?tab=tours" className="rounded-full border border-black/10 px-5 py-3 text-sm font-bold text-[var(--charcoal)] transition hover:border-[var(--forest)] hover:text-[var(--forest)]">
+                Back to Tour List
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="mt-8 grid gap-4 xl:grid-cols-2">
+            {dashboard.tours.map((tour) => (
+              <article key={tour.slug} className="rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/45 p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{tour.destination}</div>
+                    <h3 className="mt-2 text-2xl font-black text-[var(--forest-deep)]">{tour.title}</h3>
+                    <p className="mt-3 text-sm leading-7 text-neutral-600">{tour.shortDescription}</p>
+                    <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+                      <span>{tour.duration}</span>
+                      <span>{tour.status ?? "published"}</span>
+                    </div>
+                  </div>
+                  <Link href={`/admin?tab=tours&tour=${tour.slug}`} className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+                    Edit Tour
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {activeTourSlug === "new" ? (
+            <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Create New Tour</h3>
+              <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
+              <div className="mt-4">
               <TourEditor
                 tour={{
                   slug: "",
@@ -711,13 +746,19 @@ export default async function AdminPage({
                   publishedAt: "",
                 }}
               />
+              </div>
             </div>
-          </div>
-          <div className="mt-8 space-y-8">
-            {dashboard.tours.map((tour) => (
-              <TourEditor key={tour.slug} tour={tour} />
-            ))}
-          </div>
+          ) : null}
+
+          {selectedTour ? (
+            <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
+              <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
+              <div className="mt-4">
+                <TourEditor tour={selectedTour} />
+              </div>
+            </div>
+          ) : null}
         </section>
           </>
         ) : null}
