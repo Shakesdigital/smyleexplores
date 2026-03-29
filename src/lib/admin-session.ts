@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase";
 
 const COOKIE_NAME = "cms_admin_session";
-const DEFAULT_ADMIN_USERNAME = "admin";
+const DEFAULT_ADMIN_USERNAME = "Admin";
 
 type StoredAdminAccount = {
   id: string;
@@ -93,7 +93,7 @@ export async function verifyAdminCredentials(username: string, password: string)
   }
 
   const normalizedUsername = username.trim();
-  if (normalizedUsername !== config.username) {
+  if (normalizedUsername.localeCompare(config.username, undefined, { sensitivity: "accent" }) !== 0) {
     throw new Error("Incorrect username or password.");
   }
 
