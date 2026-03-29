@@ -692,6 +692,35 @@ export default async function AdminPage({
               </span>
             </Link>
           </div>
+
+          <div className="mt-8 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-[var(--forest-deep)]">Existing 5 Tour Pages</h3>
+                <p className="mt-2 text-sm leading-7 text-neutral-600">
+                  Click any tour below to open its existing frontend page in the CMS editor immediately.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 lg:grid-cols-2">
+              {dashboard.tours.map((tour) => (
+                <Link
+                  key={`edit-link-${tour.slug}`}
+                  href={`/admin?tab=tours&tour=${tour.slug}`}
+                  className="flex items-center justify-between rounded-2xl border border-black/5 bg-white px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/35"
+                >
+                  <span>
+                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{tour.destination}</span>
+                    <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{tour.title}</span>
+                  </span>
+                  <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+                    Edit this Tour
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/admin?tab=tours&tour=new" className="rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]">
               Add a Tour
@@ -703,7 +732,14 @@ export default async function AdminPage({
             ) : null}
           </div>
 
-          <div id="existing-tours" className="mt-8 grid gap-5 xl:grid-cols-2">
+          <div className="mt-10 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Tour Cards</h3>
+              <p className="mt-2 text-sm leading-7 text-neutral-600">These cards mirror the tours currently represented on the frontend and also open the editor.</p>
+            </div>
+          </div>
+
+          <div id="existing-tours" className="mt-6 grid gap-5 xl:grid-cols-2">
             {dashboard.tours.map((tour) => (
               <article key={tour.slug} className="rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/45 p-6 shadow-sm">
                 <div className="flex h-full flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
