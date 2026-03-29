@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -29,6 +29,8 @@ export function HeroBanner({
 }) {
   const normalizedSlides = slides?.length ? slides.filter((slide) => slide.image && slide.title) : [{ image, title, subtitle }];
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
 
   useEffect(() => {
     if (normalizedSlides.length <= 1) return;
@@ -40,10 +42,46 @@ export function HeroBanner({
     return () => window.clearInterval(timer);
   }, [normalizedSlides.length]);
 
+  function goToPrevious() {
+    setActiveIndex((current) => (current - 1 + normalizedSlides.length) % normalizedSlides.length);
+  }
+
+  function goToNext() {
+    setActiveIndex((current) => (current + 1) % normalizedSlides.length);
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLElement>) {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+    touchDeltaX.current = 0;
+  }
+
+  function handleTouchMove(event: React.TouchEvent<HTMLElement>) {
+    if (touchStartX.current === null) return;
+    touchDeltaX.current = (event.touches[0]?.clientX ?? 0) - touchStartX.current;
+  }
+
+  function handleTouchEnd() {
+    if (Math.abs(touchDeltaX.current) > 50) {
+      if (touchDeltaX.current < 0) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
+    }
+
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+  }
+
   const activeSlide = normalizedSlides[activeIndex] ?? { image, title, subtitle };
 
   return (
-    <section className={`relative overflow-hidden ${compact ? "min-h-[320px]" : "min-h-[80vh]"}`}>
+    <section
+      className={`relative overflow-hidden bg-[var(--forest-deep)] ${compact ? "min-h-[320px]" : "min-h-[80vh]"}`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {normalizedSlides.map((slide, index) => (
         <div
           key={`${slide.title}-${index}`}
@@ -54,8 +92,28 @@ export function HeroBanner({
       ))}
       <div className="hero-overlay absolute inset-0" />
       <div className="pattern-grid absolute inset-0 opacity-40" />
-      <div className="container-shell relative flex min-h-[inherit] items-center py-24">
-        <div className="max-w-3xl text-white">
+      <div className={`container-shell relative flex min-h-[inherit] flex-col ${compact ? "justify-end py-14" : "justify-center py-24"}`}>
+        {normalizedSlides.length > 1 ? (
+          <div className={`flex justify-end gap-3 ${compact ? "mb-8" : "mb-6"}`}>
+            <button
+              type="button"
+              onClick={goToPrevious}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/15 text-xl font-bold text-white transition hover:bg-white hover:text-[var(--forest-deep)]"
+              aria-label="Show previous hero slide"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={goToNext}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/15 text-xl font-bold text-white transition hover:bg-white hover:text-[var(--forest-deep)]"
+              aria-label="Show next hero slide"
+            >
+              →
+            </button>
+          </div>
+        ) : null}
+        <div className={`max-w-4xl text-white ${compact ? "rounded-[2rem] border border-white/10 bg-black/10 p-8 backdrop-blur-[3px]" : ""}`}>
           <div className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-[var(--orange-soft)]">Smyle Explores</div>
           <h1 className="text-5xl font-black leading-tight md:text-7xl">{activeSlide.title}</h1>
           {activeSlide.subtitle ? <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">{activeSlide.subtitle}</p> : null}
