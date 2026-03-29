@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AdminSubmitButton } from "@/components/admin/submit-button";
 import { getSiteSettings } from "@/lib/cms";
 import { hasConfiguredAdminAccess, isAdminSessionValid } from "@/lib/admin-session";
 
@@ -75,12 +76,12 @@ export default async function AdminLoginPage({
                   Forgot Password?
                 </Link>
               </div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-[var(--forest)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]"
+              <AdminSubmitButton
+                className="w-full rounded-full bg-[var(--forest)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)] disabled:cursor-not-allowed disabled:opacity-75"
+                pendingLabel="Signing in..."
               >
                 Log In
-              </button>
+              </AdminSubmitButton>
               <p className="text-center text-xs font-medium uppercase tracking-[0.14em] text-neutral-500">
                 Access is restricted to authorized personnel only.
               </p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
 import { aboutStory, whyChooseUs } from "@/lib/content";
 import { getAdminDashboardData } from "@/lib/cms";
 import { isAdminSessionValid } from "@/lib/admin-session";
@@ -123,9 +124,12 @@ function isSettingsImageField(key: string) {
 
 function SaveButton({ children }: { children: string }) {
   return (
-    <button type="submit" className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
+    <AdminSubmitButton
+      className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white transition disabled:cursor-not-allowed disabled:opacity-75"
+      pendingLabel="Saving..."
+    >
       {children}
-    </button>
+    </AdminSubmitButton>
   );
 }
 
@@ -506,7 +510,12 @@ export default async function AdminPage({
         ) : null}
 
         {params?.success ? (
-          <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm leading-7 text-emerald-900">{params.success}</div>
+          <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 text-sm leading-7 text-emerald-900">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">✓</span>
+              <span>{params.success}</span>
+            </div>
+          </div>
         ) : null}
 
         {params?.error ? (
