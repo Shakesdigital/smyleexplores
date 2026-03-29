@@ -74,10 +74,9 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
               <div className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--orange)]">Booking</div>
               <h2 className="mt-3 text-3xl font-black">{tour.bookingTitle}</h2>
               <p className="mt-4 text-sm leading-7 text-neutral-600">{tour.bookingDescription}</p>
-            </div>
-
-            <div id="quote">
-              <QuoteForm whatsappUrl={settings.whatsappUrl} preferredTour={tour.title} />
+              <div id="quote" className="mt-8">
+                <QuoteForm whatsappUrl={settings.whatsappUrl} preferredTour={tour.title} />
+              </div>
             </div>
           </div>
 
