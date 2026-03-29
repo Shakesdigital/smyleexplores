@@ -27,7 +27,13 @@ export function HeroBanner({
   compact?: boolean;
   slides?: HeroSlide[];
 }) {
-  const normalizedSlides = slides?.length ? slides.filter((slide) => slide.image && slide.title) : [{ image, title, subtitle }];
+  const baseSlide = { image, title, subtitle };
+  const extraSlides = slides?.filter((slide) => slide.image && slide.title) ?? [];
+  const normalizedSlides = [baseSlide, ...extraSlides].filter(
+    (slide, index, collection) =>
+      Boolean(slide.image && slide.title) &&
+      collection.findIndex((candidate) => candidate.image === slide.image && candidate.title === slide.title) === index,
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
@@ -77,7 +83,7 @@ export function HeroBanner({
 
   return (
     <section
-      className={`relative overflow-hidden bg-[var(--forest-deep)] ${compact ? "min-h-[320px]" : "min-h-[80vh]"}`}
+      className={`relative overflow-hidden bg-[var(--forest-deep)] ${compact ? "min-h-[68vh] md:min-h-[74vh]" : "min-h-[68vh] md:min-h-[80vh]"}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -92,7 +98,7 @@ export function HeroBanner({
       ))}
       <div className="hero-overlay absolute inset-0" />
       <div className="pattern-grid absolute inset-0 opacity-40" />
-      <div className={`container-shell relative flex min-h-[inherit] flex-col ${compact ? "justify-end py-14" : "justify-center py-24"}`}>
+      <div className={`container-shell relative flex min-h-[inherit] flex-col justify-end ${compact ? "py-14 md:py-16" : "py-16 md:py-24"}`}>
         {normalizedSlides.length > 1 ? (
           <div className={`flex justify-end gap-3 ${compact ? "mb-8" : "mb-6"}`}>
             <button
@@ -113,7 +119,7 @@ export function HeroBanner({
             </button>
           </div>
         ) : null}
-        <div className={`max-w-4xl text-white ${compact ? "rounded-[2rem] border border-white/10 bg-black/10 p-8 backdrop-blur-[3px]" : ""}`}>
+        <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 text-white backdrop-blur-[3px] md:p-10">
           <div className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-[var(--orange-soft)]">Smyle Explores</div>
           <h1 className="text-5xl font-black leading-tight md:text-7xl">{activeSlide.title}</h1>
           {activeSlide.subtitle ? <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">{activeSlide.subtitle}</p> : null}
