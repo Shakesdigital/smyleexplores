@@ -107,91 +107,115 @@ function collectTourItineraryDays(formData: FormData) {
     .filter((day) => day.dayLabel && day.title);
 }
 
+function setStringFieldIfPresent(target: Record<string, unknown>, formData: FormData, inputName: string, outputKey = inputName) {
+  if (!formData.has(inputName)) return;
+  target[outputKey] = String(formData.get(inputName) ?? "");
+}
+
+function setLinesFieldIfPresent(target: Record<string, unknown>, formData: FormData, prefix: string, outputKey: string) {
+  const hasMatchingField = Array.from(formData.keys()).some((key) => key.startsWith(prefix));
+  if (!hasMatchingField) return;
+  target[outputKey] = collectLinesByPrefix(formData, prefix);
+}
+
+function setHeroSlidesIfPresent(target: Record<string, unknown>, formData: FormData, fieldPrefix: string, outputKey: string) {
+  const hasHeroSlideField = Array.from(formData.keys()).some((key) => key.startsWith(fieldPrefix));
+  if (!hasHeroSlideField) return;
+  target[outputKey] = collectPageHeroSlides(formData);
+}
+
 function buildPageContent(formData: FormData, slug: string) {
   if (formData.has("content")) {
     return parseJsonField(formData.get("content"), "page content");
   }
 
   switch (slug) {
-    case "home":
-      return {
-        heroImage: String(formData.get("heroImage") ?? ""),
-        heroTitle: String(formData.get("heroTitle") ?? ""),
-        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
-        heroSlides: collectPageHeroSlides(formData),
-        introEyebrow: String(formData.get("introEyebrow") ?? ""),
-        introTitle: String(formData.get("introTitle") ?? ""),
-        introParagraphs: collectLinesByPrefix(formData, "introParagraph_"),
-        featureImage: String(formData.get("featureImage") ?? ""),
-        whyEyebrow: String(formData.get("whyEyebrow") ?? ""),
-        whyTitle: String(formData.get("whyTitle") ?? ""),
-        whyDescription: String(formData.get("whyDescription") ?? ""),
-        whyChooseUsItems: [1, 2, 3]
+    case "home": {
+      const content: Record<string, unknown> = {};
+      setStringFieldIfPresent(content, formData, "heroImage");
+      setStringFieldIfPresent(content, formData, "heroTitle");
+      setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
+      setStringFieldIfPresent(content, formData, "introEyebrow");
+      setStringFieldIfPresent(content, formData, "introTitle");
+      setLinesFieldIfPresent(content, formData, "introParagraph_", "introParagraphs");
+      setStringFieldIfPresent(content, formData, "featureImage");
+      setStringFieldIfPresent(content, formData, "whyEyebrow");
+      setStringFieldIfPresent(content, formData, "whyTitle");
+      setStringFieldIfPresent(content, formData, "whyDescription");
+      if ([1, 2, 3].some((index) => formData.has(`whyItemTitle_${index}`) || formData.has(`whyItemDescription_${index}`) || formData.has(`whyItemIcon_${index}`))) {
+        content.whyChooseUsItems = [1, 2, 3]
           .map((index) => ({
             title: String(formData.get(`whyItemTitle_${index}`) ?? "").trim(),
             description: String(formData.get(`whyItemDescription_${index}`) ?? "").trim(),
             icon: String(formData.get(`whyItemIcon_${index}`) ?? "").trim(),
           }))
-          .filter((item) => item.title && item.description),
-        toursEyebrow: String(formData.get("toursEyebrow") ?? ""),
-        toursTitle: String(formData.get("toursTitle") ?? ""),
-        toursDescription: String(formData.get("toursDescription") ?? ""),
-        quoteImage: String(formData.get("quoteImage") ?? ""),
-        quoteText: String(formData.get("quoteText") ?? ""),
-        testimonialsEyebrow: String(formData.get("testimonialsEyebrow") ?? ""),
-        testimonialsTitle: String(formData.get("testimonialsTitle") ?? ""),
-        testimonialsDescription: String(formData.get("testimonialsDescription") ?? ""),
-        ctaEyebrow: String(formData.get("ctaEyebrow") ?? ""),
-        ctaTitle: String(formData.get("ctaTitle") ?? ""),
-        ctaDescription: String(formData.get("ctaDescription") ?? ""),
-      };
-    case "about":
-      return {
-        heroImage: String(formData.get("heroImage") ?? ""),
-        heroTitle: String(formData.get("heroTitle") ?? ""),
-        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
-        heroSlides: collectPageHeroSlides(formData),
-        storyEyebrow: String(formData.get("storyEyebrow") ?? ""),
-        storyTitle: String(formData.get("storyTitle") ?? ""),
-        storyImage: String(formData.get("storyImage") ?? ""),
-        storyParagraphs: collectLinesByPrefix(formData, "storyParagraph_"),
-        missionEyebrow: String(formData.get("missionEyebrow") ?? ""),
-        missionQuote: String(formData.get("missionQuote") ?? ""),
-        valuesEyebrow: String(formData.get("valuesEyebrow") ?? ""),
-        valuesTitle: String(formData.get("valuesTitle") ?? ""),
-        ctaTitle: String(formData.get("ctaTitle") ?? ""),
-      };
-    case "tours":
-      return {
-        heroImage: String(formData.get("heroImage") ?? ""),
-        heroTitle: String(formData.get("heroTitle") ?? ""),
-        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
-        heroSlides: collectPageHeroSlides(formData),
-        introEyebrow: String(formData.get("introEyebrow") ?? ""),
-        introTitle: String(formData.get("introTitle") ?? ""),
-        introDescription: String(formData.get("introDescription") ?? ""),
-      };
-    case "blog":
-      return {
-        heroImage: String(formData.get("heroImage") ?? ""),
-        heroTitle: String(formData.get("heroTitle") ?? ""),
-        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
-        heroSlides: collectPageHeroSlides(formData),
-        introEyebrow: String(formData.get("introEyebrow") ?? ""),
-        introTitle: String(formData.get("introTitle") ?? ""),
-        introDescription: String(formData.get("introDescription") ?? ""),
-      };
-    case "contact":
-      return {
-        heroImage: String(formData.get("heroImage") ?? ""),
-        heroTitle: String(formData.get("heroTitle") ?? ""),
-        heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
-        heroSlides: collectPageHeroSlides(formData),
-        introEyebrow: String(formData.get("introEyebrow") ?? ""),
-        introTitle: String(formData.get("introTitle") ?? ""),
-        quoteEyebrow: String(formData.get("quoteEyebrow") ?? ""),
-        quoteTitle: String(formData.get("quoteTitle") ?? ""),
-      };
+          .filter((item) => item.title && item.description);
+      }
+      setStringFieldIfPresent(content, formData, "toursEyebrow");
+      setStringFieldIfPresent(content, formData, "toursTitle");
+      setStringFieldIfPresent(content, formData, "toursDescription");
+      setStringFieldIfPresent(content, formData, "quoteImage");
+      setStringFieldIfPresent(content, formData, "quoteText");
+      setStringFieldIfPresent(content, formData, "testimonialsEyebrow");
+      setStringFieldIfPresent(content, formData, "testimonialsTitle");
+      setStringFieldIfPresent(content, formData, "testimonialsDescription");
+      setStringFieldIfPresent(content, formData, "ctaEyebrow");
+      setStringFieldIfPresent(content, formData, "ctaTitle");
+      setStringFieldIfPresent(content, formData, "ctaDescription");
+      return content;
+    }
+    case "about": {
+      const content: Record<string, unknown> = {};
+      setStringFieldIfPresent(content, formData, "heroImage");
+      setStringFieldIfPresent(content, formData, "heroTitle");
+      setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
+      setStringFieldIfPresent(content, formData, "storyEyebrow");
+      setStringFieldIfPresent(content, formData, "storyTitle");
+      setStringFieldIfPresent(content, formData, "storyImage");
+      setLinesFieldIfPresent(content, formData, "storyParagraph_", "storyParagraphs");
+      setStringFieldIfPresent(content, formData, "missionEyebrow");
+      setStringFieldIfPresent(content, formData, "missionQuote");
+      setStringFieldIfPresent(content, formData, "valuesEyebrow");
+      setStringFieldIfPresent(content, formData, "valuesTitle");
+      setStringFieldIfPresent(content, formData, "ctaTitle");
+      return content;
+    }
+    case "tours": {
+      const content: Record<string, unknown> = {};
+      setStringFieldIfPresent(content, formData, "heroImage");
+      setStringFieldIfPresent(content, formData, "heroTitle");
+      setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
+      setStringFieldIfPresent(content, formData, "introEyebrow");
+      setStringFieldIfPresent(content, formData, "introTitle");
+      setStringFieldIfPresent(content, formData, "introDescription");
+      return content;
+    }
+    case "blog": {
+      const content: Record<string, unknown> = {};
+      setStringFieldIfPresent(content, formData, "heroImage");
+      setStringFieldIfPresent(content, formData, "heroTitle");
+      setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
+      setStringFieldIfPresent(content, formData, "introEyebrow");
+      setStringFieldIfPresent(content, formData, "introTitle");
+      setStringFieldIfPresent(content, formData, "introDescription");
+      return content;
+    }
+    case "contact": {
+      const content: Record<string, unknown> = {};
+      setStringFieldIfPresent(content, formData, "heroImage");
+      setStringFieldIfPresent(content, formData, "heroTitle");
+      setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
+      setStringFieldIfPresent(content, formData, "introEyebrow");
+      setStringFieldIfPresent(content, formData, "introTitle");
+      setStringFieldIfPresent(content, formData, "quoteEyebrow");
+      setStringFieldIfPresent(content, formData, "quoteTitle");
+      return content;
+    }
     default:
       return {};
   }
@@ -319,6 +343,12 @@ export async function upsertPageAction(formData: FormData) {
     if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
 
     const slug = String(formData.get("slug") ?? "");
+    const updates = buildPageContent(formData, slug);
+    const existingPage = await client.from("pages").select("content").eq("slug", slug).maybeSingle();
+    const mergedContent = {
+      ...((existingPage.data?.content as Record<string, unknown> | null) ?? {}),
+      ...updates,
+    };
 
     const { error } = await client.from("pages").upsert(
       {
@@ -326,7 +356,7 @@ export async function upsertPageAction(formData: FormData) {
         title: String(formData.get("title") ?? ""),
         excerpt: optionalValue(formData.get("excerpt")),
         status: String(formData.get("status") ?? "draft"),
-        content: buildPageContent(formData, slug),
+        content: mergedContent,
         featured_image_url: optionalValue(formData.get("featured_image_url")),
         meta_title: optionalValue(formData.get("meta_title")),
         meta_description: optionalValue(formData.get("meta_description")),

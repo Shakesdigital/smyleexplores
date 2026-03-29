@@ -102,13 +102,13 @@ export default async function HomePage() {
           <RelatedToursCarousel tours={featuredTours} showPrice={false} showHighlights={false} />
         </div>
       </section>
-      <section className="section-space relative overflow-hidden">
+      <section className="relative min-h-[62vh] overflow-hidden py-20 md:min-h-[72vh] md:py-24">
         <div
           className="absolute inset-0 bg-cover"
           style={{ backgroundImage: `url('${String(content.quoteImage)}')`, backgroundPosition: "center 22%" }}
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="container-shell relative">
+        <div className="container-shell relative flex min-h-[inherit] items-center">
           <blockquote className="mx-auto max-w-4xl text-center text-3xl font-black leading-tight text-white md:text-5xl">{String(content.quoteText)}</blockquote>
         </div>
       </section>
