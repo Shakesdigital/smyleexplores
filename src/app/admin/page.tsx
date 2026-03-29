@@ -225,8 +225,16 @@ function TourEditor({ tour, minimumSlideCount = 4 }: { tour: Tour; minimumSlideC
             <h3 className="text-xl font-black text-[var(--forest-deep)]">Hero Slides</h3>
             <p className="mt-2 text-sm leading-7 text-neutral-600">These cards map directly to the rotating hero slides on the tour page.</p>
           </div>
-          <div className="rounded-full border border-[var(--forest)]/20 bg-[var(--forest)]/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
-            {slides.length} slide slots
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-full border border-[var(--forest)]/20 bg-[var(--forest)]/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+              {slides.length} slide slots
+            </div>
+            <Link
+              href={`/admin?tab=tours&tour=${tour.slug || "new"}&slides=${slides.length + 1}`}
+              className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+            >
+              Add Another Hero Slide
+            </Link>
           </div>
         </div>
         <div className="mt-4 grid gap-4 xl:grid-cols-2">

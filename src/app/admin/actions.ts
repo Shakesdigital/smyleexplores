@@ -26,6 +26,14 @@ function redirectWithMessage(type: "success" | "error", message: string) {
   redirect(`/admin?${type}=${encodeMessage(message)}`);
 }
 
+function redirectWithTourMessage(type: "success" | "error", message: string, slug?: string) {
+  const params = new URLSearchParams();
+  params.set(type, message);
+  params.set("tab", "tours");
+  if (slug) params.set("tour", slug);
+  redirect(`/admin?${params.toString()}`);
+}
+
 function parseJsonField(value: FormDataEntryValue | null, fieldName: string) {
   try {
     return JSON.parse(String(value ?? "{}"));
@@ -179,6 +187,43 @@ function revalidateSite() {
   revalidatePath("/contact");
   revalidatePath("/tours");
   revalidatePath("/admin");
+}
+
+const OPTIONAL_TOUR_COLUMNS = new Set([
+  "destination",
+  "hero_slides",
+  "itinerary_days",
+  "booking_title",
+  "booking_description",
+  "related_tour_slugs",
+]);
+
+function extractMissingColumn(errorMessage: string) {
+  const match = errorMessage.match(/Could not find the '([^']+)' column/i);
+  return match?.[1] ?? null;
+}
+
+async function upsertTourWithSchemaFallback(
+  client: NonNullable<ReturnType<typeof createSupabaseServiceRoleClient>>,
+  payload: Record<string, unknown>,
+) {
+  const skippedColumns: string[] = [];
+  const workingPayload = { ...payload };
+
+  while (true) {
+    const result = await client.from("tours").upsert(workingPayload, { onConflict: "slug" });
+    if (!result.error) {
+      return { skippedColumns };
+    }
+
+    const missingColumn = extractMissingColumn(result.error.message);
+    if (!missingColumn || !OPTIONAL_TOUR_COLUMNS.has(missingColumn) || !(missingColumn in workingPayload)) {
+      throw new Error(result.error.message);
+    }
+
+    delete workingPayload[missingColumn];
+    skippedColumns.push(missingColumn);
+  }
 }
 
 export async function loginAdminAction(formData: FormData) {
@@ -336,46 +381,49 @@ export async function upsertTourAction(formData: FormData) {
     if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
 
     const slug = String(formData.get("slug") ?? "");
+    const payload = {
+      slug,
+      title: String(formData.get("title") ?? ""),
+      summary: optionalValue(formData.get("summary")),
+      description: collectLinesByPrefix(formData, "overview_"),
+      duration: String(formData.get("duration") ?? ""),
+      difficulty: String(formData.get("difficulty") ?? ""),
+      minimum_age: String(formData.get("minimum_age") ?? ""),
+      group_size: optionalValue(formData.get("group_size")),
+      starting_price: String(formData.get("starting_price") ?? ""),
+      location: String(formData.get("location") ?? "Uganda"),
+      destination: String(formData.get("destination") ?? "Uganda"),
+      hero_image_url: optionalValue(formData.get("hero_image_url")),
+      hero_slides: collectTourHeroSlides(formData),
+      highlights: parseLines(formData.get("highlights")),
+      itinerary_days: collectTourItineraryDays(formData),
+      included: parseLines(formData.get("included")),
+      what_to_bring: parseLines(formData.get("what_to_bring")),
+      booking_title: optionalValue(formData.get("booking_title")),
+      booking_description: optionalValue(formData.get("booking_description")),
+      related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
+      status: String(formData.get("status") ?? "draft"),
+      meta_title: optionalValue(formData.get("meta_title")),
+      meta_description: optionalValue(formData.get("meta_description")),
+      meta_image_url: optionalValue(formData.get("meta_image_url")),
+      published_at: optionalValue(formData.get("published_at")),
+    };
 
-    const { error } = await client.from("tours").upsert(
-      {
-        slug,
-        title: String(formData.get("title") ?? ""),
-        summary: optionalValue(formData.get("summary")),
-        description: collectLinesByPrefix(formData, "overview_"),
-        duration: String(formData.get("duration") ?? ""),
-        difficulty: String(formData.get("difficulty") ?? ""),
-        minimum_age: String(formData.get("minimum_age") ?? ""),
-        group_size: optionalValue(formData.get("group_size")),
-        starting_price: String(formData.get("starting_price") ?? ""),
-        location: String(formData.get("location") ?? "Uganda"),
-        destination: String(formData.get("destination") ?? "Uganda"),
-        hero_image_url: optionalValue(formData.get("hero_image_url")),
-        hero_slides: collectTourHeroSlides(formData),
-        highlights: parseLines(formData.get("highlights")),
-        itinerary_days: collectTourItineraryDays(formData),
-        included: parseLines(formData.get("included")),
-        what_to_bring: parseLines(formData.get("what_to_bring")),
-        booking_title: optionalValue(formData.get("booking_title")),
-        booking_description: optionalValue(formData.get("booking_description")),
-        related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
-        status: String(formData.get("status") ?? "draft"),
-        meta_title: optionalValue(formData.get("meta_title")),
-        meta_description: optionalValue(formData.get("meta_description")),
-        meta_image_url: optionalValue(formData.get("meta_image_url")),
-        published_at: optionalValue(formData.get("published_at")),
-      },
-      { onConflict: "slug" },
-    );
-
-    if (error) throw new Error(error.message);
+    const { skippedColumns } = await upsertTourWithSchemaFallback(client, payload);
 
     revalidateSite();
     revalidatePath(`/tours/${slug}`);
-    redirectWithMessage("success", `Saved tour ${slug}.`);
+    if (skippedColumns.length) {
+      redirectWithTourMessage(
+        "success",
+        `Saved tour ${slug}, but your Supabase schema is missing: ${skippedColumns.join(", ")}. Run the latest tours migration to save those fields too.`,
+        slug,
+      );
+    }
+    redirectWithTourMessage("success", `Saved tour ${slug}.`, slug);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save tour.";
-    redirectWithMessage("error", message);
+    redirectWithTourMessage("error", message, String(formData.get("slug") ?? ""));
   }
 }
 
