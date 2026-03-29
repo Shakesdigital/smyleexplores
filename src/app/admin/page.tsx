@@ -1031,6 +1031,7 @@ export default async function AdminPage({
               <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
               <div className="mt-4">
               <TourEditor
+                key="new-tour-editor"
                 slides={newTourSlides}
                 addSlideHref={`/admin?tab=tours&tour=new&slides=${newTourSlideCount + 1}`}
                 getRemoveSlideHref={(index) => `/admin?tab=tours&tour=new&slides=${Math.max(newTourSlideCount - 1, 1)}&removeSlide=${index}`}
@@ -1072,6 +1073,7 @@ export default async function AdminPage({
               <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
               <div className="mt-4">
                 <TourEditor
+                  key={selectedTour.slug}
                   tour={selectedTour}
                   slides={selectedTourSlides}
                   addSlideHref={`/admin?tab=tours&tour=${selectedTour.slug}&slides=${selectedTourSlideCount + 1}`}
