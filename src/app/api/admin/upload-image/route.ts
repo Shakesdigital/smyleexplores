@@ -6,10 +6,29 @@ import { isAdminSessionValid } from "@/lib/admin-session";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase";
 
 const CMS_MEDIA_BUCKET = "cms-media";
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function sanitizeSegment(value: string, fallback: string) {
   const normalized = value.trim().toLowerCase().replace(/[^a-z0-9/_-]+/g, "-").replace(/\/+/g, "/");
   return normalized.length ? normalized : fallback;
+}
+
+async function ensureCmsMediaBucket(client: NonNullable<ReturnType<typeof createSupabaseServiceRoleClient>>) {
+  const { data: bucket, error } = await client.storage.getBucket(CMS_MEDIA_BUCKET);
+  if (!error && bucket) return;
+
+  const createResult = await client.storage.createBucket(CMS_MEDIA_BUCKET, {
+    public: true,
+    fileSizeLimit: 10 * 1024 * 1024,
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+  });
+
+  if (createResult.error && !/already exists/i.test(createResult.error.message)) {
+    throw new Error(createResult.error.message);
+  }
 }
 
 export async function POST(request: Request) {
@@ -23,6 +42,8 @@ export async function POST(request: Request) {
     if (!client) {
       return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured." }, { status: 500 });
     }
+
+    await ensureCmsMediaBucket(client);
 
     const formData = await request.formData();
     const file = formData.get("file");
@@ -40,8 +61,9 @@ export async function POST(request: Request) {
     const fileName = `${Date.now()}-${randomUUID()}.${extension}`;
     const path = `${folder}/${fileName}`;
     const arrayBuffer = await file.arrayBuffer();
+    const fileBuffer = Buffer.from(arrayBuffer);
 
-    const { error } = await client.storage.from(CMS_MEDIA_BUCKET).upload(path, arrayBuffer, {
+    const { error } = await client.storage.from(CMS_MEDIA_BUCKET).upload(path, fileBuffer, {
       contentType: file.type,
       upsert: false,
     });

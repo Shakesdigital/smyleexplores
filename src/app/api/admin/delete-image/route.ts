@@ -5,6 +5,9 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase";
 
 const CMS_MEDIA_BUCKET = "cms-media";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const isAdmin = await isAdminSessionValid();
