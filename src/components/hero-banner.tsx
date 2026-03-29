@@ -121,7 +121,7 @@ export function HeroBanner({
         ) : null}
         <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 text-white backdrop-blur-[3px] md:p-10">
           <div className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-[var(--orange-soft)]">Smyle Explores</div>
-          <h1 className="text-5xl font-black leading-tight md:text-7xl">{activeSlide.title}</h1>
+          <h1 className="text-4xl font-black leading-tight md:text-6xl">{activeSlide.title}</h1>
           {activeSlide.subtitle ? <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">{activeSlide.subtitle}</p> : null}
           {ctaLabel && ctaHref ? (
             <Link href={ctaHref} className="mt-10 inline-flex rounded-full bg-[var(--orange)] px-7 py-4 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--forest)]">
