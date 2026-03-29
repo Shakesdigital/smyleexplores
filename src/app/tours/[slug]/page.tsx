@@ -42,7 +42,11 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
         <div className="container-shell space-y-14">
           <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
             <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-            <SectionHeading eyebrow={tour.destination} title={tour.title} description={tour.shortDescription} />
+            <div>
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{tour.destination}</div>
+              <h1 className="mt-3 text-3xl font-black text-[var(--forest-deep)] md:text-4xl">{tour.title}</h1>
+              <p className="mt-4 text-base leading-8 text-neutral-600">{tour.shortDescription}</p>
+            </div>
 
             <div className="mt-6 space-y-5 text-base leading-8 text-neutral-600">
               {tour.overview.map((paragraph) => (
@@ -79,7 +83,11 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
             <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-              <SectionHeading eyebrow="Itinerary" title="Day-by-day journey" description="The full itinerary is grouped into one continuous section for easier browsing." />
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">Itinerary</div>
+                <h2 className="mt-3 text-3xl font-black text-[var(--forest-deep)]">Day-by-day journey</h2>
+                <p className="mt-4 text-sm leading-7 text-neutral-600">The full itinerary is grouped into one continuous section for easier browsing.</p>
+              </div>
               <div className="mt-8 space-y-8">
                 {tour.itineraryDays.map((day) => (
                   <article key={`${day.dayLabel}-${day.title}`} className="border-b border-black/5 pb-8 last:border-b-0 last:pb-0">
@@ -102,7 +110,10 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
 
             <div className="space-y-8">
               <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
-                <SectionHeading eyebrow="Trip Highlights" title="What this itinerary is built around" />
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">Trip Highlights</div>
+                  <h2 className="mt-3 text-3xl font-black text-[var(--forest-deep)]">What this itinerary is built around</h2>
+                </div>
                 <ul className="mt-6 grid gap-4 text-sm leading-7 text-neutral-600">
                   {tour.highlights.map((item) => (
                     <li key={item} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4">
