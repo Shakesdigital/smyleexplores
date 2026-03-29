@@ -17,10 +17,15 @@ export default async function BlogPage() {
     getPageContent("blog", blogFallbackContent),
     getBlogPosts(),
   ]);
+  const heroSlidesValue = (content as Record<string, unknown>).heroSlides;
+  const heroSlides =
+    Array.isArray(heroSlidesValue) && heroSlidesValue.length
+      ? (heroSlidesValue as { image: string; title: string; subtitle?: string }[])
+      : undefined;
 
   return (
     <main>
-      <HeroBanner image={String(content.heroImage)} title={String(content.heroTitle)} subtitle={String(content.heroSubtitle)} compact />
+      <HeroBanner image={String(content.heroImage)} title={String(content.heroTitle)} subtitle={String(content.heroSubtitle)} slides={heroSlides} compact />
       <section className="section-space">
         <div className="container-shell">
           <SectionHeading eyebrow={String(content.introEyebrow)} title={String(content.introTitle)} description={String(content.introDescription)} />

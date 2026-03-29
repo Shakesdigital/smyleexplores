@@ -31,10 +31,15 @@ export default async function AboutPage() {
     Array.isArray(content.storyParagraphs) && content.storyParagraphs.length
       ? (content.storyParagraphs as string[])
       : aboutStory;
+  const heroSlidesValue = (content as Record<string, unknown>).heroSlides;
+  const heroSlides =
+    Array.isArray(heroSlidesValue) && heroSlidesValue.length
+      ? (heroSlidesValue as { image: string; title: string; subtitle?: string }[])
+      : undefined;
 
   return (
     <main>
-      <HeroBanner image={String(content.heroImage)} title={String(content.heroTitle)} subtitle={String(content.heroSubtitle)} compact />
+      <HeroBanner image={String(content.heroImage)} title={String(content.heroTitle)} subtitle={String(content.heroSubtitle)} slides={heroSlides} compact />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-8">

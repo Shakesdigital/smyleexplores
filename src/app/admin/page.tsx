@@ -22,6 +22,7 @@ import {
 export const dynamic = "force-dynamic";
 
 type AdminTab = "landing" | "tours" | "blog" | "submissions";
+type SlideContent = { image: string; title: string; subtitle: string };
 
 function prettyJson(value: Record<string, unknown>) {
   return JSON.stringify(value, null, 2);
@@ -177,9 +178,17 @@ function BasePageFields({ page }: { page: CmsPage }) {
   );
 }
 
-function TourEditor({ tour, minimumSlideCount = 4 }: { tour: Tour; minimumSlideCount?: number }) {
-  const slides = [...tour.heroSlides];
-  while (slides.length < minimumSlideCount) slides.push({ image: "", title: "", subtitle: "" });
+function TourEditor({
+  tour,
+  slides,
+  addSlideHref,
+  getRemoveSlideHref,
+}: {
+  tour: Tour;
+  slides: SlideContent[];
+  addSlideHref: string;
+  getRemoveSlideHref: (index: number) => string;
+}) {
 
   const itineraryDays = [...tour.itineraryDays];
   while (itineraryDays.length < 5) {
@@ -230,7 +239,7 @@ function TourEditor({ tour, minimumSlideCount = 4 }: { tour: Tour; minimumSlideC
               {slides.length} slide slots
             </div>
             <Link
-              href={`/admin?tab=tours&tour=${tour.slug || "new"}&slides=${slides.length + 1}`}
+              href={addSlideHref}
               className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
             >
               Add Another Hero Slide
@@ -240,6 +249,15 @@ function TourEditor({ tour, minimumSlideCount = 4 }: { tour: Tour; minimumSlideC
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
           {slides.map((slide, index) => (
             <div key={`${tour.slug}-slide-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Slide {index + 1}</div>
+                <Link
+                  href={getRemoveSlideHref(index)}
+                  className="rounded-full border border-red-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-red-600 transition hover:bg-red-50"
+                >
+                  Delete Slide
+                </Link>
+              </div>
               <ImageField label={`Slide ${index + 1} Image`} name={`slideImage_${index + 1}`} defaultValue={slide.image} folder={`tours/${tour.slug || "new-tour"}/slides`} />
               <div className="mt-3">
                 <Field label={`Slide ${index + 1} Title`} name={`slideTitle_${index + 1}`} defaultValue={slide.title} />
@@ -302,10 +320,16 @@ function HeroEditor({
   page,
   label,
   extraFields,
+  slides,
+  addSlideHref,
+  getRemoveSlideHref,
 }: {
   page: CmsPage;
   label: string;
   extraFields?: ReactNode;
+  slides: SlideContent[];
+  addSlideHref: string;
+  getRemoveSlideHref: (index: number) => string;
 }) {
   return (
     <form action={upsertPageAction} className="rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
@@ -320,6 +344,47 @@ function HeroEditor({
         <Field label="Page Title" name="title" defaultValue={page.title} />
         <ImageField label="Meta Image" name="meta_image_url" defaultValue={page.metaImageUrl ?? ""} folder={`pages/${page.slug}/meta`} />
       </div>
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h4 className="text-xl font-black text-[var(--forest-deep)]">Hero Slides</h4>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">Add multiple hero slides for this landing page and save to publish them on the frontend.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-full border border-[var(--forest)]/20 bg-[var(--forest)]/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+              {slides.length} slide slots
+            </div>
+            <Link
+              href={addSlideHref}
+              className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+            >
+              Add Another Hero Slide
+            </Link>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          {slides.map((slide, index) => (
+            <div key={`${page.slug}-hero-slide-${index}`} className="rounded-2xl border border-black/5 bg-[var(--sand)]/35 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Slide {index + 1}</div>
+                <Link
+                  href={getRemoveSlideHref(index)}
+                  className="rounded-full border border-red-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-red-600 transition hover:bg-red-50"
+                >
+                  Delete Slide
+                </Link>
+              </div>
+              <ImageField label={`Slide ${index + 1} Image`} name={`heroSlideImage_${index + 1}`} defaultValue={slide.image} folder={`pages/${page.slug}/slides`} />
+              <div className="mt-3">
+                <Field label={`Slide ${index + 1} Title`} name={`heroSlideTitle_${index + 1}`} defaultValue={slide.title} />
+              </div>
+              <div className="mt-3">
+                <TextAreaField label={`Slide ${index + 1} Subtitle`} name={`heroSlideSubtitle_${index + 1}`} defaultValue={slide.subtitle} rows={3} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
       {extraFields ? <div className="mt-4 grid gap-4 lg:grid-cols-2">{extraFields}</div> : null}
       <SaveButton>Save Hero</SaveButton>
     </form>
@@ -329,7 +394,7 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; slides?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; slides?: string; pageSlides?: string; removeSlide?: string; removePageSlide?: string }>;
 }) {
   if (!hasCmsAdminPassword()) redirect("/admin/login");
   if (!(await isAdminSessionValid())) redirect("/admin/login");
@@ -343,6 +408,9 @@ export default async function AdminPage({
   const activePageSlug = params?.page;
   const activePostSlug = params?.post;
   const requestedSlideCount = Number(params?.slides ?? "0");
+  const requestedPageSlideCount = Number(params?.pageSlides ?? "0");
+  const requestedRemoveSlideIndex = Number(params?.removeSlide ?? "-1");
+  const requestedRemovePageSlideIndex = Number(params?.removePageSlide ?? "-1");
   const dashboard = await getAdminDashboardData();
   const homePage = dashboard.pages.find((page) => page.slug === "home");
   const aboutPage = dashboard.pages.find((page) => page.slug === "about");
@@ -350,11 +418,36 @@ export default async function AdminPage({
   const blogPage = dashboard.pages.find((page) => page.slug === "blog");
   const contactPage = dashboard.pages.find((page) => page.slug === "contact");
   const selectedTour = dashboard.tours.find((tour) => tour.slug === activeTourSlug) ?? null;
-  const selectedTourSlideCount = Math.max(selectedTour?.heroSlides.length ?? 0, requestedSlideCount || 0, 4);
-  const newTourSlideCount = Math.max(requestedSlideCount || 0, 4);
   const landingPages = [homePage, aboutPage, toursPage, blogPage, contactPage].filter((page): page is CmsPage => Boolean(page));
   const selectedLandingPage = landingPages.find((page) => page.slug === activePageSlug) ?? null;
   const selectedBlogPost = dashboard.blogPosts.find((post) => post.slug === activePostSlug) ?? null;
+
+  function buildEditableSlides(existingSlides: SlideContent[], minimumCount: number, removeIndex: number) {
+    const normalized = existingSlides
+      .filter((_, index) => index !== removeIndex)
+      .map((slide) => ({
+        image: asString(slide.image),
+        title: asString(slide.title),
+        subtitle: asString(slide.subtitle),
+      }));
+
+    const nextSlides = [...normalized];
+    while (nextSlides.length < minimumCount) nextSlides.push({ image: "", title: "", subtitle: "" });
+    return nextSlides;
+  }
+
+  const selectedTourSlideCount = Math.max((selectedTour?.heroSlides.length ?? 0) - (requestedRemoveSlideIndex >= 0 ? 1 : 0), requestedSlideCount || 0, 1);
+  const newTourSlideCount = Math.max(requestedSlideCount || 0, 1);
+  const selectedTourSlides = selectedTour ? buildEditableSlides(selectedTour.heroSlides, selectedTourSlideCount, requestedRemoveSlideIndex) : [];
+  const newTourSlides = buildEditableSlides([], newTourSlideCount, -1);
+  const selectedPageSlideCount = Math.max(
+    (asObjectArray<SlideContent>(selectedLandingPage?.content.heroSlides, []).length || 0) - (requestedRemovePageSlideIndex >= 0 ? 1 : 0),
+    requestedPageSlideCount || 0,
+    1,
+  );
+  const selectedPageSlides = selectedLandingPage
+    ? buildEditableSlides(asObjectArray<SlideContent>(selectedLandingPage.content.heroSlides, []), selectedPageSlideCount, requestedRemovePageSlideIndex)
+    : [];
 
   const settingsFields = [
     { label: "Site Name", groupKey: "general", key: "site_name", value: dashboard.settings.siteName, type: "string" },
@@ -504,6 +597,9 @@ export default async function AdminPage({
               <HeroEditor
                 page={homePage}
                 label="Home Hero"
+                slides={selectedPageSlides}
+                addSlideHref={`/admin?tab=landing&page=home&pageSlides=${selectedPageSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=landing&page=home&pageSlides=${Math.max(selectedPageSlideCount - 1, 1)}&removePageSlide=${index}`}
                 extraFields={
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
@@ -518,6 +614,9 @@ export default async function AdminPage({
               <HeroEditor
                 page={aboutPage}
                 label="About Hero"
+                slides={selectedPageSlides}
+                addSlideHref={`/admin?tab=landing&page=about&pageSlides=${selectedPageSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=landing&page=about&pageSlides=${Math.max(selectedPageSlideCount - 1, 1)}&removePageSlide=${index}`}
                 extraFields={
                   <>
                     <Field label="Story Eyebrow" name="storyEyebrow" defaultValue={asString(aboutPage.content.storyEyebrow)} />
@@ -531,6 +630,9 @@ export default async function AdminPage({
               <HeroEditor
                 page={toursPage}
                 label="Tours Hero"
+                slides={selectedPageSlides}
+                addSlideHref={`/admin?tab=landing&page=tours&pageSlides=${selectedPageSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=landing&page=tours&pageSlides=${Math.max(selectedPageSlideCount - 1, 1)}&removePageSlide=${index}`}
                 extraFields={
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(toursPage.content.introEyebrow)} />
@@ -544,6 +646,9 @@ export default async function AdminPage({
               <HeroEditor
                 page={blogPage}
                 label="Blog Hero"
+                slides={selectedPageSlides}
+                addSlideHref={`/admin?tab=landing&page=blog&pageSlides=${selectedPageSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=landing&page=blog&pageSlides=${Math.max(selectedPageSlideCount - 1, 1)}&removePageSlide=${index}`}
                 extraFields={
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(blogPage.content.introEyebrow)} />
@@ -557,6 +662,9 @@ export default async function AdminPage({
               <HeroEditor
                 page={contactPage}
                 label="Contact Hero"
+                slides={selectedPageSlides}
+                addSlideHref={`/admin?tab=landing&page=contact&pageSlides=${selectedPageSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=landing&page=contact&pageSlides=${Math.max(selectedPageSlideCount - 1, 1)}&removePageSlide=${index}`}
                 extraFields={
                   <>
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(contactPage.content.introEyebrow)} />
@@ -853,21 +961,13 @@ export default async function AdminPage({
 
           {activeTourSlug === "new" ? (
             <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h3 className="text-2xl font-black text-[var(--forest-deep)]">Create New Tour</h3>
-                  <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
-                </div>
-                <Link
-                  href={`/admin?tab=tours&tour=new&slides=${newTourSlideCount + 1}`}
-                  className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
-                >
-                  Add Another Hero Slide
-                </Link>
-              </div>
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Create New Tour</h3>
+              <p className="mt-2 text-sm leading-7 text-neutral-600">Start a new destination tour entry, then save it to add it to the editable list.</p>
               <div className="mt-4">
               <TourEditor
-                minimumSlideCount={newTourSlideCount}
+                slides={newTourSlides}
+                addSlideHref={`/admin?tab=tours&tour=new&slides=${newTourSlideCount + 1}`}
+                getRemoveSlideHref={(index) => `/admin?tab=tours&tour=new&slides=${Math.max(newTourSlideCount - 1, 1)}&removeSlide=${index}`}
                 tour={{
                   slug: "",
                   title: "",
@@ -902,20 +1002,15 @@ export default async function AdminPage({
 
           {selectedTour ? (
             <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
-                </div>
-                <Link
-                  href={`/admin?tab=tours&tour=${selectedTour.slug}&slides=${selectedTourSlideCount + 1}`}
-                  className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
-                >
-                  Add Another Hero Slide
-                </Link>
-              </div>
+              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
+              <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
               <div className="mt-4">
-                <TourEditor tour={selectedTour} minimumSlideCount={selectedTourSlideCount} />
+                <TourEditor
+                  tour={selectedTour}
+                  slides={selectedTourSlides}
+                  addSlideHref={`/admin?tab=tours&tour=${selectedTour.slug}&slides=${selectedTourSlideCount + 1}`}
+                  getRemoveSlideHref={(index) => `/admin?tab=tours&tour=${selectedTour.slug}&slides=${Math.max(selectedTourSlideCount - 1, 1)}&removeSlide=${index}`}
+                />
               </div>
             </div>
           ) : null}

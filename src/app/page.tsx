@@ -46,6 +46,11 @@ export default async function HomePage() {
     Array.isArray(content.whyChooseUsItems) && content.whyChooseUsItems.length
       ? (content.whyChooseUsItems as { title: string; description: string; icon: string }[])
       : whyChooseUs;
+  const heroSlidesValue = (content as Record<string, unknown>).heroSlides;
+  const heroSlides =
+    Array.isArray(heroSlidesValue) && heroSlidesValue.length
+      ? (heroSlidesValue as { image: string; title: string; subtitle?: string }[])
+      : undefined;
 
   return (
     <main>
@@ -53,6 +58,7 @@ export default async function HomePage() {
         image={String(content.heroImage)}
         title={String(content.heroTitle)}
         subtitle={String(content.heroSubtitle)}
+        slides={heroSlides}
         ctaLabel="View Our Tours"
         ctaHref="/tours"
       />

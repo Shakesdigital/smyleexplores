@@ -68,6 +68,24 @@ function collectTourHeroSlides(formData: FormData) {
     .filter((slide) => slide.image && slide.title);
 }
 
+function collectPageHeroSlides(formData: FormData) {
+  const indexes = new Set<number>();
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("heroSlideTitle_") || !String(value).trim()) continue;
+    indexes.add(Number(key.replace("heroSlideTitle_", "")));
+  }
+
+  return [...indexes]
+    .sort((left, right) => left - right)
+    .map((index) => ({
+      image: String(formData.get(`heroSlideImage_${index}`) ?? "").trim(),
+      title: String(formData.get(`heroSlideTitle_${index}`) ?? "").trim(),
+      subtitle: String(formData.get(`heroSlideSubtitle_${index}`) ?? "").trim(),
+    }))
+    .filter((slide) => slide.image && slide.title);
+}
+
 function collectTourItineraryDays(formData: FormData) {
   const indexes = new Set<number>();
 
@@ -99,6 +117,7 @@ function buildPageContent(formData: FormData, slug: string) {
         heroImage: String(formData.get("heroImage") ?? ""),
         heroTitle: String(formData.get("heroTitle") ?? ""),
         heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        heroSlides: collectPageHeroSlides(formData),
         introEyebrow: String(formData.get("introEyebrow") ?? ""),
         introTitle: String(formData.get("introTitle") ?? ""),
         introParagraphs: collectLinesByPrefix(formData, "introParagraph_"),
@@ -130,6 +149,7 @@ function buildPageContent(formData: FormData, slug: string) {
         heroImage: String(formData.get("heroImage") ?? ""),
         heroTitle: String(formData.get("heroTitle") ?? ""),
         heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        heroSlides: collectPageHeroSlides(formData),
         storyEyebrow: String(formData.get("storyEyebrow") ?? ""),
         storyTitle: String(formData.get("storyTitle") ?? ""),
         storyImage: String(formData.get("storyImage") ?? ""),
@@ -145,6 +165,7 @@ function buildPageContent(formData: FormData, slug: string) {
         heroImage: String(formData.get("heroImage") ?? ""),
         heroTitle: String(formData.get("heroTitle") ?? ""),
         heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        heroSlides: collectPageHeroSlides(formData),
         introEyebrow: String(formData.get("introEyebrow") ?? ""),
         introTitle: String(formData.get("introTitle") ?? ""),
         introDescription: String(formData.get("introDescription") ?? ""),
@@ -154,6 +175,7 @@ function buildPageContent(formData: FormData, slug: string) {
         heroImage: String(formData.get("heroImage") ?? ""),
         heroTitle: String(formData.get("heroTitle") ?? ""),
         heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        heroSlides: collectPageHeroSlides(formData),
         introEyebrow: String(formData.get("introEyebrow") ?? ""),
         introTitle: String(formData.get("introTitle") ?? ""),
         introDescription: String(formData.get("introDescription") ?? ""),
@@ -163,6 +185,7 @@ function buildPageContent(formData: FormData, slug: string) {
         heroImage: String(formData.get("heroImage") ?? ""),
         heroTitle: String(formData.get("heroTitle") ?? ""),
         heroSubtitle: String(formData.get("heroSubtitle") ?? ""),
+        heroSlides: collectPageHeroSlides(formData),
         introEyebrow: String(formData.get("introEyebrow") ?? ""),
         introTitle: String(formData.get("introTitle") ?? ""),
         quoteEyebrow: String(formData.get("quoteEyebrow") ?? ""),
