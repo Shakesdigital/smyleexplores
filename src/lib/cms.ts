@@ -363,21 +363,33 @@ async function fetchAdminTourRows(client: NonNullable<ReturnType<typeof createSu
 }
 
 function mapBlogPost(row: BlogRow): BlogPost {
+  const fallbackPost = fallbackBlogPosts.find((item) => item.slug === row.slug);
+
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    date: formatDisplayDate(row.published_at),
-    excerpt: row.excerpt ?? "",
-    category: row.category ?? "General",
-    image: row.featured_image_url ?? "/images/blog-top-5-jinja.jpeg",
+    date: formatDisplayDate(row.published_at) || fallbackPost?.date || "",
+    excerpt: row.excerpt ?? fallbackPost?.excerpt ?? "",
+    category: row.category ?? fallbackPost?.category ?? "General",
+    image: row.featured_image_url ?? fallbackPost?.image ?? "/images/blog-top-5-jinja.jpeg",
     status: row.status,
-    content: row.content ?? {},
+    content: row.content ?? fallbackPost?.content ?? {},
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
     metaImageUrl: row.meta_image_url,
     publishedAt: row.published_at,
   };
+}
+
+function mergeBlogPostsWithFallback(rows: BlogRow[]) {
+  const mappedPosts = rows.map(mapBlogPost);
+  const mappedBySlug = new Map(mappedPosts.map((post) => [post.slug, post]));
+
+  return [
+    ...mappedPosts,
+    ...fallbackBlogPosts.filter((post) => !mappedBySlug.has(post.slug)),
+  ];
 }
 
 function mapPage(row: PageRow): CmsPage {
@@ -474,7 +486,7 @@ export const getBlogPosts = cache(async () => {
     .order("published_at", { ascending: false });
 
   if (!data?.length) return fallbackBlogPosts;
-  return (data as BlogRow[]).map(mapBlogPost);
+  return mergeBlogPostsWithFallback(data as BlogRow[]);
 });
 
 export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
@@ -581,7 +593,8 @@ export async function getAdminDashboardData() {
 
   const pages = ((pagesResult.data ?? []) as PageRow[]).map(mapPage);
   const tours = toursRows.length ? mergeToursWithFallback(toursRows) : publicTours;
-  const blogPosts = ((blogResult.data ?? []) as BlogRow[]).map(mapBlogPost);
+  const blogRows = (blogResult.data ?? []) as BlogRow[];
+  const blogPosts = blogRows.length ? mergeBlogPostsWithFallback(blogRows) : publicBlogPosts;
   const testimonials = testimonialsResult.data?.length
     ? (testimonialsResult.data as TestimonialRow[]).map((row) => ({
         id: row.id,

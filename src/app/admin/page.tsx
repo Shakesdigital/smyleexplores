@@ -26,6 +26,7 @@ import {
 export const dynamic = "force-dynamic";
 
 type AdminTab = "landing" | "tours" | "blog" | "submissions";
+type BlogEditorTab = "content" | "publishing" | "seo";
 type SlideContent = { image: string; title: string; subtitle: string };
 
 function prettyJson(value: Record<string, unknown>) {
@@ -161,6 +162,29 @@ function SectionTab({ tab, label, active }: { tab: AdminTab; label: string; acti
         active
           ? "bg-white text-[var(--forest-deep)]"
           : "border border-white/15 bg-white/5 text-white/85 hover:border-white hover:bg-white/10"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function EditorTabLink({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] transition ${
+        active
+          ? "bg-[var(--forest)] text-white"
+          : "border border-black/10 bg-white text-neutral-600 hover:border-[var(--forest)] hover:text-[var(--forest)]"
       }`}
     >
       {label}
@@ -410,7 +434,7 @@ function HeroEditor({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; slides?: string; pageSlides?: string; removeSlide?: string; removePageSlide?: string }>;
+  searchParams?: Promise<{ success?: string; error?: string; tab?: string; tour?: string; page?: string; post?: string; editor?: string; slides?: string; pageSlides?: string; removeSlide?: string; removePageSlide?: string }>;
 }) {
   if (!(await isAdminSessionValid())) redirect("/admin/login");
 
@@ -422,6 +446,8 @@ export default async function AdminPage({
   const activeTourSlug = params?.tour;
   const activePageSlug = params?.page;
   const activePostSlug = params?.post;
+  const activeBlogEditorTab: BlogEditorTab =
+    params?.editor === "publishing" || params?.editor === "seo" || params?.editor === "content" ? params.editor : "content";
   const requestedSlideCount = Number(params?.slides ?? "0");
   const requestedPageSlideCount = Number(params?.pageSlides ?? "0");
   const requestedRemoveSlideIndex = Number(params?.removeSlide ?? "-1");
@@ -1127,6 +1153,45 @@ export default async function AdminPage({
         <section id="blog-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Blog Posts</h2>
           <p className="mt-2 text-sm leading-7 text-neutral-600">Open an existing post to edit it, or start a new post from a dedicated creation action.</p>
+          <div className="mt-6">
+            <Link
+              href="#existing-posts"
+              className="inline-flex items-center gap-3 rounded-[1.5rem] border border-black/5 bg-[var(--sand)]/45 px-5 py-4 text-left transition hover:border-[var(--forest)]/30 hover:bg-[var(--sand)]/75"
+            >
+              <span className="text-3xl font-black text-[var(--forest-deep)]">{dashboard.blogPosts.length}</span>
+              <span>
+                <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">Current Blogs</span>
+                <span className="block text-sm font-semibold text-neutral-600">Open the existing journal posts and jump straight into the editor you need.</span>
+              </span>
+            </Link>
+          </div>
+          <div className="mt-8 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-[var(--forest-deep)]">Existing Blog Posts</h3>
+                <p className="mt-2 text-sm leading-7 text-neutral-600">
+                  Click any existing blog below to keep building it up inside the CMS editor.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 lg:grid-cols-2">
+              {dashboard.blogPosts.map((post) => (
+                <Link
+                  key={`blog-edit-link-${post.slug}`}
+                  href={`/admin?tab=blog&post=${post.slug}`}
+                  className="flex items-center justify-between rounded-2xl border border-black/5 bg-white px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/35"
+                >
+                  <span>
+                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{post.category}</span>
+                    <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{post.title}</span>
+                  </span>
+                  <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
+                    Edit this Post
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
           <div className="mt-6 grid gap-3 lg:grid-cols-2">
             {dashboard.blogPosts.map((post) => (
               <Link
@@ -1157,56 +1222,89 @@ export default async function AdminPage({
           {activePostSlug === "new" ? (
           <form action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
             <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Blog Post</h3>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <EditorTabLink href="/admin?tab=blog&post=new&editor=content" label="Writing Tool" active={activeBlogEditorTab === "content"} />
+              <EditorTabLink href="/admin?tab=blog&post=new&editor=publishing" label="Media & Publish" active={activeBlogEditorTab === "publishing"} />
+              <EditorTabLink href="/admin?tab=blog&post=new&editor=seo" label="SEO" active={activeBlogEditorTab === "seo"} />
+            </div>
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               <Field label="Slug" name="slug" defaultValue="" />
               <Field label="Title" name="title" defaultValue="" />
               <SelectField label="Status" name="status" defaultValue="draft" options={["draft", "published"]} />
-              <Field label="Category" name="category" defaultValue="" />
-              <ImageField label="Featured Image" name="featured_image_url" defaultValue="" folder="blog/featured" />
-              <Field label="Published At" name="published_at" defaultValue="" />
             </div>
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <TextAreaField label="Excerpt" name="excerpt" defaultValue="" rows={3} />
-              <TextAreaField label="Meta Description" name="meta_description" defaultValue="" rows={3} />
-              <Field label="Meta Title" name="meta_title" defaultValue="" />
-              <ImageField label="Meta Image" name="meta_image_url" defaultValue="" folder="blog/meta" />
-            </div>
-            <div className="mt-4">
-              <TextAreaField
-                label="Content JSON"
-                name="content"
-                defaultValue={prettyJson({ paragraphs: [], heroImage: "", ctaLabel: "", ctaHref: "" })}
-                rows={10}
-                mono
-              />
-            </div>
+            {activeBlogEditorTab === "content" ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Category" name="category" defaultValue="" />
+                <TextAreaField label="Excerpt" name="excerpt" defaultValue="" rows={3} />
+                <div className="lg:col-span-2">
+                  <TextAreaField
+                    label="Content JSON"
+                    name="content"
+                    defaultValue={prettyJson({ paragraphs: [], heroImage: "", ctaLabel: "", ctaHref: "" })}
+                    rows={12}
+                    mono
+                  />
+                </div>
+              </div>
+            ) : null}
+            {activeBlogEditorTab === "publishing" ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <ImageField label="Featured Image" name="featured_image_url" defaultValue="" folder="blog/featured" />
+                <Field label="Published At" name="published_at" defaultValue="" />
+              </div>
+            ) : null}
+            {activeBlogEditorTab === "seo" ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <Field label="Meta Title" name="meta_title" defaultValue="" />
+                <ImageField label="Meta Image" name="meta_image_url" defaultValue="" folder="blog/meta" />
+                <div className="lg:col-span-2">
+                  <TextAreaField label="Meta Description" name="meta_description" defaultValue="" rows={3} />
+                </div>
+              </div>
+            ) : null}
             <SaveButton>Create Blog Post</SaveButton>
           </form>
           ) : null}
           {selectedBlogPost ? (
               <form key={selectedBlogPost.slug} action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
                 <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedBlogPost.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-neutral-600">Use the editor tools below to build up the blog post in focused sections instead of one long form.</p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <EditorTabLink href={`/admin?tab=blog&post=${selectedBlogPost.slug}&editor=content`} label="Writing Tool" active={activeBlogEditorTab === "content"} />
+                  <EditorTabLink href={`/admin?tab=blog&post=${selectedBlogPost.slug}&editor=publishing`} label="Media & Publish" active={activeBlogEditorTab === "publishing"} />
+                  <EditorTabLink href={`/admin?tab=blog&post=${selectedBlogPost.slug}&editor=seo`} label="SEO" active={activeBlogEditorTab === "seo"} />
+                </div>
                 <div className="grid gap-4 lg:grid-cols-3">
                   <Field label="Slug" name="slug" defaultValue={selectedBlogPost.slug} />
                   <Field label="Title" name="title" defaultValue={selectedBlogPost.title} />
                   <SelectField label="Status" name="status" defaultValue={selectedBlogPost.status ?? "published"} options={["draft", "published"]} />
-                  <Field label="Category" name="category" defaultValue={selectedBlogPost.category} />
-                  <ImageField label="Featured Image" name="featured_image_url" defaultValue={selectedBlogPost.image} folder={`blog/${selectedBlogPost.slug}/featured`} />
-                  <Field label="Published At" name="published_at" defaultValue={selectedBlogPost.publishedAt ?? ""} />
                 </div>
-                <div className="mt-4">
-                  <TextAreaField label="Excerpt" name="excerpt" defaultValue={selectedBlogPost.excerpt} rows={3} />
-                </div>
-                <div className="mt-4">
-                  <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(selectedBlogPost.content ?? {})} rows={10} mono />
-                </div>
-                <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                  <Field label="Meta Title" name="meta_title" defaultValue={selectedBlogPost.metaTitle ?? ""} />
-                  <ImageField label="Meta Image" name="meta_image_url" defaultValue={selectedBlogPost.metaImageUrl ?? ""} folder={`blog/${selectedBlogPost.slug}/meta`} />
-                </div>
-                <div className="mt-4">
-                  <TextAreaField label="Meta Description" name="meta_description" defaultValue={selectedBlogPost.metaDescription ?? ""} rows={3} />
-                </div>
+                {activeBlogEditorTab === "content" ? (
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <Field label="Category" name="category" defaultValue={selectedBlogPost.category} />
+                    <TextAreaField label="Excerpt" name="excerpt" defaultValue={selectedBlogPost.excerpt} rows={3} />
+                    <div className="lg:col-span-2">
+                      <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(selectedBlogPost.content ?? {})} rows={12} mono />
+                    </div>
+                  </div>
+                ) : null}
+                {activeBlogEditorTab === "publishing" ? (
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <ImageField label="Featured Image" name="featured_image_url" defaultValue={selectedBlogPost.image} folder={`blog/${selectedBlogPost.slug}/featured`} />
+                    <Field label="Published At" name="published_at" defaultValue={selectedBlogPost.publishedAt ?? ""} />
+                  </div>
+                ) : null}
+                {activeBlogEditorTab === "seo" ? (
+                  <>
+                    <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                      <Field label="Meta Title" name="meta_title" defaultValue={selectedBlogPost.metaTitle ?? ""} />
+                      <ImageField label="Meta Image" name="meta_image_url" defaultValue={selectedBlogPost.metaImageUrl ?? ""} folder={`blog/${selectedBlogPost.slug}/meta`} />
+                    </div>
+                    <div className="mt-4">
+                      <TextAreaField label="Meta Description" name="meta_description" defaultValue={selectedBlogPost.metaDescription ?? ""} rows={3} />
+                    </div>
+                  </>
+                ) : null}
                 <SaveButton>Save Post</SaveButton>
               </form>
           ) : null}

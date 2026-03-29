@@ -589,20 +589,33 @@ export async function upsertBlogPostAction(formData: FormData) {
     if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
 
     const slug = String(formData.get("slug") ?? "");
+    const existingPost = await client
+      .from("blog_posts")
+      .select("excerpt,category,featured_image_url,content,meta_title,meta_description,meta_image_url,published_at")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    const existingData = existingPost.data ?? null;
 
     const { error } = await client.from("blog_posts").upsert(
       {
         slug,
         title: String(formData.get("title") ?? ""),
-        excerpt: optionalValue(formData.get("excerpt")),
-        category: optionalValue(formData.get("category")),
-        featured_image_url: optionalValue(formData.get("featured_image_url")),
+        excerpt: formData.has("excerpt") ? optionalValue(formData.get("excerpt")) : existingData?.excerpt ?? null,
+        category: formData.has("category") ? optionalValue(formData.get("category")) : existingData?.category ?? null,
+        featured_image_url: formData.has("featured_image_url")
+          ? optionalValue(formData.get("featured_image_url"))
+          : existingData?.featured_image_url ?? null,
         status: String(formData.get("status") ?? "draft"),
-        content: parseJsonField(formData.get("content"), "blog content"),
-        meta_title: optionalValue(formData.get("meta_title")),
-        meta_description: optionalValue(formData.get("meta_description")),
-        meta_image_url: optionalValue(formData.get("meta_image_url")),
-        published_at: optionalValue(formData.get("published_at")),
+        content: formData.has("content") ? parseJsonField(formData.get("content"), "blog content") : existingData?.content ?? {},
+        meta_title: formData.has("meta_title") ? optionalValue(formData.get("meta_title")) : existingData?.meta_title ?? null,
+        meta_description: formData.has("meta_description")
+          ? optionalValue(formData.get("meta_description"))
+          : existingData?.meta_description ?? null,
+        meta_image_url: formData.has("meta_image_url")
+          ? optionalValue(formData.get("meta_image_url"))
+          : existingData?.meta_image_url ?? null,
+        published_at: formData.has("published_at") ? optionalValue(formData.get("published_at")) : existingData?.published_at ?? null,
       },
       { onConflict: "slug" },
     );
