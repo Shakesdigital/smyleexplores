@@ -48,14 +48,6 @@ export function HeroBanner({
     return () => window.clearInterval(timer);
   }, [normalizedSlides.length]);
 
-  function goToPrevious() {
-    setActiveIndex((current) => (current - 1 + normalizedSlides.length) % normalizedSlides.length);
-  }
-
-  function goToNext() {
-    setActiveIndex((current) => (current + 1) % normalizedSlides.length);
-  }
-
   function handleTouchStart(event: React.TouchEvent<HTMLElement>) {
     touchStartX.current = event.touches[0]?.clientX ?? null;
     touchDeltaX.current = 0;
@@ -68,11 +60,11 @@ export function HeroBanner({
 
   function handleTouchEnd() {
     if (Math.abs(touchDeltaX.current) > 50) {
-      if (touchDeltaX.current < 0) {
-        goToNext();
-      } else {
-        goToPrevious();
-      }
+      setActiveIndex((current) =>
+        touchDeltaX.current < 0
+          ? (current + 1) % normalizedSlides.length
+          : (current - 1 + normalizedSlides.length) % normalizedSlides.length,
+      );
     }
 
     touchStartX.current = null;
@@ -99,26 +91,6 @@ export function HeroBanner({
       <div className="hero-overlay absolute inset-0" />
       <div className="pattern-grid absolute inset-0 opacity-40" />
       <div className={`container-shell relative flex min-h-[inherit] flex-col justify-end ${compact ? "py-14 md:py-16" : "py-16 md:py-24"}`}>
-        {normalizedSlides.length > 1 ? (
-          <div className={`flex justify-end gap-3 ${compact ? "mb-8" : "mb-6"}`}>
-            <button
-              type="button"
-              onClick={goToPrevious}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/15 text-xl font-bold text-white transition hover:bg-white hover:text-[var(--forest-deep)]"
-              aria-label="Show previous hero slide"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={goToNext}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/15 text-xl font-bold text-white transition hover:bg-white hover:text-[var(--forest-deep)]"
-              aria-label="Show next hero slide"
-            >
-              →
-            </button>
-          </div>
-        ) : null}
         <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 text-white backdrop-blur-[3px] md:p-10">
           <div className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-[var(--orange-soft)]">Smyle Explores</div>
           <h1 className="text-4xl font-black leading-tight md:text-6xl">{activeSlide.title}</h1>
@@ -128,25 +100,24 @@ export function HeroBanner({
               {ctaLabel}
             </Link>
           ) : null}
-          {normalizedSlides.length > 1 ? (
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              {normalizedSlides.map((slide, index) => (
-                <button
-                  key={`${slide.title}-indicator-${index}`}
-                  type="button"
-                  onClick={() => setActiveIndex(index)}
-                  className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] transition ${
-                    index === activeIndex
-                      ? "bg-[var(--orange)] text-white"
-                      : "border border-white/20 bg-white/10 text-white/80 hover:bg-white/15"
-                  }`}
-                >
-                  {slide.title}
-                </button>
-              ))}
-            </div>
-          ) : null}
         </div>
+        {normalizedSlides.length > 1 ? (
+          <div className="mt-8 flex justify-center gap-3">
+            {normalizedSlides.map((slide, index) => (
+              <button
+                key={`${slide.title}-indicator-${index}`}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Show hero slide ${index + 1}`}
+                className={`h-3 w-3 rounded-full transition ${
+                  index === activeIndex
+                    ? "bg-[var(--orange)] shadow-[0_0_0_6px_rgba(245,124,0,0.2)]"
+                    : "bg-white/45 hover:bg-white/75"
+                }`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
