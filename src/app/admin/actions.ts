@@ -143,6 +143,8 @@ function buildPageContent(formData: FormData, slug: string) {
       setStringFieldIfPresent(content, formData, "heroImage");
       setStringFieldIfPresent(content, formData, "heroTitle");
       setStringFieldIfPresent(content, formData, "heroSubtitle");
+      setStringFieldIfPresent(content, formData, "heroCtaLabel");
+      setStringFieldIfPresent(content, formData, "heroCtaHref");
       setHeroSlidesIfPresent(content, formData, "heroSlide", "heroSlides");
       setStringFieldIfPresent(content, formData, "introEyebrow");
       setStringFieldIfPresent(content, formData, "introTitle");
@@ -164,6 +166,8 @@ function buildPageContent(formData: FormData, slug: string) {
       setStringFieldIfPresent(content, formData, "toursEyebrow");
       setStringFieldIfPresent(content, formData, "toursTitle");
       setStringFieldIfPresent(content, formData, "toursDescription");
+      setStringFieldIfPresent(content, formData, "toursCtaLabel");
+      setStringFieldIfPresent(content, formData, "toursCtaHref");
       setStringFieldIfPresent(content, formData, "quoteImage");
       setStringFieldIfPresent(content, formData, "quoteText");
       setStringFieldIfPresent(content, formData, "testimonialsEyebrow");
@@ -172,6 +176,8 @@ function buildPageContent(formData: FormData, slug: string) {
       setStringFieldIfPresent(content, formData, "ctaEyebrow");
       setStringFieldIfPresent(content, formData, "ctaTitle");
       setStringFieldIfPresent(content, formData, "ctaDescription");
+      setStringFieldIfPresent(content, formData, "ctaButtonLabel");
+      setStringFieldIfPresent(content, formData, "ctaButtonHref");
       return content;
     }
     case "about": {
@@ -189,6 +195,8 @@ function buildPageContent(formData: FormData, slug: string) {
       setStringFieldIfPresent(content, formData, "valuesEyebrow");
       setStringFieldIfPresent(content, formData, "valuesTitle");
       setStringFieldIfPresent(content, formData, "ctaTitle");
+      setStringFieldIfPresent(content, formData, "ctaButtonLabel");
+      setStringFieldIfPresent(content, formData, "ctaButtonHref");
       return content;
     }
     case "tours": {
@@ -223,6 +231,8 @@ function buildPageContent(formData: FormData, slug: string) {
       setStringFieldIfPresent(content, formData, "introTitle");
       setStringFieldIfPresent(content, formData, "quoteEyebrow");
       setStringFieldIfPresent(content, formData, "quoteTitle");
+      setStringFieldIfPresent(content, formData, "browseCtaLabel");
+      setStringFieldIfPresent(content, formData, "browseCtaHref");
       return content;
     }
     default:
@@ -252,6 +262,8 @@ const OPTIONAL_TOUR_COLUMNS = new Set([
   "itinerary_days",
   "booking_title",
   "booking_description",
+  "cta_label",
+  "cta_href",
   "related_tour_slugs",
 ]);
 
@@ -541,6 +553,8 @@ export async function upsertTourAction(formData: FormData) {
       what_to_bring: parseLines(formData.get("what_to_bring")),
       booking_title: optionalValue(formData.get("booking_title")),
       booking_description: optionalValue(formData.get("booking_description")),
+      cta_label: optionalValue(formData.get("cta_label")),
+      cta_href: optionalValue(formData.get("cta_href")),
       related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
       status: String(formData.get("status") ?? "draft"),
       meta_title: optionalValue(formData.get("meta_title")),

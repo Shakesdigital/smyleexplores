@@ -12,6 +12,8 @@ const homeFallbackContent = {
   heroImage: "/images/home-hero-rafting.jpeg",
   heroTitle: "Explore Uganda. Feel Alive.",
   heroSubtitle: "Destination-led Uganda tours with waterfall escapes, wildlife safaris, primate journeys, and immersive stays in Jinja.",
+  heroCtaLabel: "View Our Tours",
+  heroCtaHref: "/tours",
   introEyebrow: "Pearl of Africa",
   introTitle: "Travel deeper into Uganda with itineraries designed around the places that make the country unforgettable.",
   introDescription: "Thoughtfully structured journeys, destination insight, and local coordination that make planning Uganda travel feel clear from the first click.",
@@ -27,6 +29,8 @@ const homeFallbackContent = {
   toursEyebrow: "Featured Tours",
   toursTitle: "Signature Uganda itineraries.",
   toursDescription: "A handpicked preview of destination-based tours guests can browse, compare, and book from the CMS-driven frontend.",
+  toursCtaLabel: "View All Tours",
+  toursCtaHref: "/tours",
   quoteImage: "/images/home-quote-feature.jpeg",
   quoteText: getStaticFallbackContent().homeQuote,
   testimonialsEyebrow: "Testimonials",
@@ -35,6 +39,8 @@ const homeFallbackContent = {
   ctaEyebrow: "Start Planning",
   ctaTitle: "Ready for your Uganda story?",
   ctaDescription: "Speak with Smyle Explores for tailored recommendations, group ideas, or a personalized travel quote.",
+  ctaButtonLabel: "Request a Quote",
+  ctaButtonHref: "/contact#quote",
 };
 
 export default async function HomePage() {
@@ -61,8 +67,8 @@ export default async function HomePage() {
         title={String(content.heroTitle)}
         subtitle={String(content.heroSubtitle)}
         slides={heroSlides}
-        ctaLabel="View Our Tours"
-        ctaHref="/tours"
+        ctaLabel={String(content.heroCtaLabel)}
+        ctaHref={String(content.heroCtaHref)}
       />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
@@ -99,7 +105,9 @@ export default async function HomePage() {
         <div className="container-shell">
           <div className="flex items-end justify-between gap-6">
             <SectionHeading eyebrow={String(content.toursEyebrow)} title={String(content.toursTitle)} description={String(content.toursDescription)} />
-            <Link href="/tours" className="hidden rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] lg:inline-flex">View All Tours</Link>
+            <Link href={String(content.toursCtaHref)} className="hidden rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] lg:inline-flex">
+              {String(content.toursCtaLabel)}
+            </Link>
           </div>
           <RelatedToursCarousel tours={featuredTours} showPrice={false} showHighlights={false} />
         </div>
@@ -122,7 +130,9 @@ export default async function HomePage() {
             <div className="text-sm uppercase tracking-[0.2em] text-white/60">{String(content.ctaEyebrow)}</div>
             <div className="mt-2 text-3xl font-black">{String(content.ctaTitle)}</div>
             <p className="mt-4 max-w-2xl text-white/75">{String(content.ctaDescription)}</p>
-            <Link href="/contact#quote" className="mt-6 inline-flex rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white">Request a Quote</Link>
+            <Link href={String(content.ctaButtonHref)} className="mt-6 inline-flex rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white">
+              {String(content.ctaButtonLabel)}
+            </Link>
           </div>
         </div>
       </section>

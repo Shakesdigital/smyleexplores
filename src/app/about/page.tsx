@@ -19,6 +19,8 @@ const aboutFallbackContent = {
   valuesEyebrow: "Values",
   valuesTitle: "What we protect in every trip we design.",
   ctaTitle: "Ready to Explore Uganda?",
+  ctaButtonLabel: "Contact Us",
+  ctaButtonHref: "/contact",
 };
 
 export default async function AboutPage() {
@@ -81,7 +83,9 @@ export default async function AboutPage() {
         <div className="container-shell">
           <div className="rounded-[2rem] bg-[var(--forest-deep)] p-10 text-center text-white">
             <div className="text-4xl font-black">{String(content.ctaTitle)}</div>
-            <Link href="/contact" className="mt-6 inline-flex rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white">Contact Us</Link>
+            <Link href={String(content.ctaButtonHref)} className="mt-6 inline-flex rounded-full bg-[var(--orange)] px-6 py-4 text-sm font-bold text-white">
+              {String(content.ctaButtonLabel)}
+            </Link>
           </div>
         </div>
       </section>

@@ -71,6 +71,8 @@ type TourRow = {
   what_to_bring: unknown;
   booking_title: string | null;
   booking_description: string | null;
+  cta_label: string | null;
+  cta_href: string | null;
   related_tour_slugs: unknown;
   status: string;
   meta_title: string | null;
@@ -146,7 +148,7 @@ type QuoteRequestRow = {
 };
 
 const TOUR_SELECT =
-  "id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,destination,hero_image_url,hero_slides,highlights,itinerary_days,included,what_to_bring,booking_title,booking_description,related_tour_slugs,status,meta_title,meta_description,meta_image_url,published_at";
+  "id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,destination,hero_image_url,hero_slides,highlights,itinerary_days,included,what_to_bring,booking_title,booking_description,cta_label,cta_href,related_tour_slugs,status,meta_title,meta_description,meta_image_url,published_at";
 
 const LEGACY_TOUR_SELECT =
   "id,slug,title,summary,description,duration,difficulty,minimum_age,group_size,starting_price,location,hero_image_url,highlights,included,what_to_bring,status,meta_title,meta_description,meta_image_url,published_at";
@@ -317,6 +319,8 @@ function mapTour(row: TourRow): Tour {
       row.booking_description,
       fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs.",
     ),
+    ctaLabel: asString(row.cta_label, fallbackTour?.ctaLabel ?? "View Itinerary"),
+    ctaHref: asString(row.cta_href, fallbackTour?.ctaHref ?? `/tours/${row.slug}`),
     relatedTourSlugs: asStringArray(row.related_tour_slugs, fallbackTour?.relatedTourSlugs ?? []),
     status: row.status,
     metaTitle: row.meta_title,

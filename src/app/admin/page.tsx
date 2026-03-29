@@ -307,6 +307,15 @@ function TourEditor({
       </div>
 
       <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
+        <h3 className="text-xl font-black text-[var(--forest-deep)]">Tour Card CTA</h3>
+        <p className="mt-2 text-sm leading-7 text-neutral-600">Customize the button text and link shown on the tour cards across the site.</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <Field label="CTA Button Label" name="cta_label" defaultValue={tour.ctaLabel} />
+          <Field label="CTA Button Link" name="cta_href" defaultValue={tour.ctaHref} />
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
         <h3 className="text-xl font-black text-[var(--forest-deep)]">Booking Section</h3>
         <p className="mt-2 text-sm leading-7 text-neutral-600">These fields appear beside the quote form on the live landing page.</p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -645,6 +654,8 @@ export default async function AdminPage({
                     <Field label="Intro Eyebrow" name="introEyebrow" defaultValue={asString(homePage.content.introEyebrow)} />
                     <Field label="Intro Title" name="introTitle" defaultValue={asString(homePage.content.introTitle)} />
                     <TextAreaField label="Intro Description" name="introDescription" defaultValue={asString(homePage.content.introDescription)} rows={3} />
+                    <Field label="Hero Button Label" name="heroCtaLabel" defaultValue={asString(homePage.content.heroCtaLabel, "View Our Tours")} />
+                    <Field label="Hero Button Link" name="heroCtaHref" defaultValue={asString(homePage.content.heroCtaHref, "/tours")} />
                     <ImageField label="Feature Image" name="featureImage" defaultValue={asString(homePage.content.featureImage)} folder="pages/home/feature" />
                     <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
                   </>
@@ -767,6 +778,8 @@ export default async function AdminPage({
                 <Field label="Tours Eyebrow" name="toursEyebrow" defaultValue={asString(homePage.content.toursEyebrow)} />
                 <Field label="Tours Title" name="toursTitle" defaultValue={asString(homePage.content.toursTitle)} />
                 <TextAreaField label="Tours Description" name="toursDescription" defaultValue={asString(homePage.content.toursDescription)} rows={3} />
+                <Field label="Featured Tours Button Label" name="toursCtaLabel" defaultValue={asString(homePage.content.toursCtaLabel, "View All Tours")} />
+                <Field label="Featured Tours Button Link" name="toursCtaHref" defaultValue={asString(homePage.content.toursCtaHref, "/tours")} />
                 <ImageField label="Quote Image" name="quoteImage" defaultValue={asString(homePage.content.quoteImage)} folder="pages/home/quote" />
                 <TextAreaField label="Quote Text" name="quoteText" defaultValue={asString(homePage.content.quoteText)} rows={4} />
                 <Field label="Testimonials Eyebrow" name="testimonialsEyebrow" defaultValue={asString(homePage.content.testimonialsEyebrow)} />
@@ -775,6 +788,8 @@ export default async function AdminPage({
                 <Field label="CTA Eyebrow" name="ctaEyebrow" defaultValue={asString(homePage.content.ctaEyebrow)} />
                 <Field label="CTA Title" name="ctaTitle" defaultValue={asString(homePage.content.ctaTitle)} />
                 <TextAreaField label="CTA Description" name="ctaDescription" defaultValue={asString(homePage.content.ctaDescription)} rows={3} />
+                <Field label="Bottom CTA Button Label" name="ctaButtonLabel" defaultValue={asString(homePage.content.ctaButtonLabel, "Request a Quote")} />
+                <Field label="Bottom CTA Button Link" name="ctaButtonHref" defaultValue={asString(homePage.content.ctaButtonHref, "/contact#quote")} />
               </div>
               <SaveButton>Save Home Page</SaveButton>
             </form>
@@ -804,6 +819,8 @@ export default async function AdminPage({
                 <Field label="Values Eyebrow" name="valuesEyebrow" defaultValue={asString(aboutPage.content.valuesEyebrow)} />
                 <Field label="Values Title" name="valuesTitle" defaultValue={asString(aboutPage.content.valuesTitle)} />
                 <Field label="CTA Title" name="ctaTitle" defaultValue={asString(aboutPage.content.ctaTitle)} />
+                <Field label="CTA Button Label" name="ctaButtonLabel" defaultValue={asString(aboutPage.content.ctaButtonLabel, "Contact Us")} />
+                <Field label="CTA Button Link" name="ctaButtonHref" defaultValue={asString(aboutPage.content.ctaButtonHref, "/contact")} />
               </div>
               <SaveButton>Save About Page</SaveButton>
             </form>
@@ -856,6 +873,8 @@ export default async function AdminPage({
                 <Field label="Intro Title" name="introTitle" defaultValue={asString(contactPage.content.introTitle)} />
                 <Field label="Quote Eyebrow" name="quoteEyebrow" defaultValue={asString(contactPage.content.quoteEyebrow)} />
                 <Field label="Quote Title" name="quoteTitle" defaultValue={asString(contactPage.content.quoteTitle)} />
+                <Field label="Sidebar Button Label" name="browseCtaLabel" defaultValue={asString(contactPage.content.browseCtaLabel, "Browse Tours")} />
+                <Field label="Sidebar Button Link" name="browseCtaHref" defaultValue={asString(contactPage.content.browseCtaHref, "/tours")} />
               </div>
               <SaveButton>Save Contact Page</SaveButton>
             </form>
@@ -1064,6 +1083,8 @@ export default async function AdminPage({
                   itineraryDays: [],
                   bookingTitle: "",
                   bookingDescription: "",
+                  ctaLabel: "View Itinerary",
+                  ctaHref: "",
                   relatedTourSlugs: [],
                   status: "draft",
                   metaTitle: "",

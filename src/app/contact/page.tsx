@@ -13,6 +13,8 @@ const contactFallbackContent = {
   introTitle: "Plan your Uganda itinerary with a local team that understands destinations across the country.",
   quoteEyebrow: "Request a Quote",
   quoteTitle: "Share your dates and travel ideas.",
+  browseCtaLabel: "Browse Tours",
+  browseCtaHref: "/tours",
 };
 
 export default async function ContactPage() {
@@ -52,7 +54,9 @@ export default async function ContactPage() {
               <h2 className="text-2xl font-black">Office Hours</h2>
               <div className="mt-4 space-y-2 text-sm text-white/75">{siteSettings.officeHours.map((hours) => <p key={hours}>{hours}</p>)}</div>
               <p className="mt-6 text-sm text-white/75">Or browse our tours and request a quote directly.</p>
-              <Link href="/tours" className="mt-5 inline-flex rounded-full bg-[var(--orange)] px-5 py-3 text-sm font-bold text-white">Browse Tours</Link>
+              <Link href={String(content.browseCtaHref)} className="mt-5 inline-flex rounded-full bg-[var(--orange)] px-5 py-3 text-sm font-bold text-white">
+                {String(content.browseCtaLabel)}
+              </Link>
             </div>
           </div>
         </div>

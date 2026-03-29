@@ -78,6 +78,8 @@ export type Tour = {
   itineraryDays: TourItineraryDay[];
   bookingTitle: string;
   bookingDescription: string;
+  ctaLabel: string;
+  ctaHref: string;
   relatedTourSlugs: string[];
   status?: string;
   metaTitle?: string | null;

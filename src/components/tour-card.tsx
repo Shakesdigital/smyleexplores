@@ -46,8 +46,11 @@ export function TourCard({
             ))}
           </div>
         ) : null}
-        <Link href={`/tours/${tour.slug}`} className="mt-auto inline-flex rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
-          View Itinerary
+        <Link
+          href={tour.ctaHref || `/tours/${tour.slug}`}
+          className="mt-auto inline-flex rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+        >
+          {tour.ctaLabel || "View Itinerary"}
         </Link>
       </div>
     </article>

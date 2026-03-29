@@ -193,6 +193,8 @@ export const tours: Tour[] = [
     ],
     bookingTitle: "Plan Your Sipi Escape",
     bookingDescription: "Share your dates, group size, and any hiking or comfort preferences. We will tailor the Sipi Falls escape around them.",
+    ctaLabel: "View Itinerary",
+    ctaHref: "/tours/sipi-falls-3-days-escape",
     relatedTourSlugs: ["queen-elizabeth-3-days", "lake-mburo-3-days", "jinja-5-days"],
   },
   {
@@ -282,6 +284,8 @@ export const tours: Tour[] = [
     ],
     bookingTitle: "Request Your Primate Safari",
     bookingDescription: "Tell us your preferred travel window, permit priorities, and accommodation level. We will shape the safari around availability and pace.",
+    ctaLabel: "View Itinerary",
+    ctaHref: "/tours/gorilla-and-chimpanzee-safari-5-days",
     relatedTourSlugs: ["queen-elizabeth-3-days", "lake-mburo-3-days", "sipi-falls-3-days-escape"],
   },
   {
@@ -351,6 +355,8 @@ export const tours: Tour[] = [
     ],
     bookingTitle: "Book the Queen Elizabeth Safari",
     bookingDescription: "Share your dates and room preferences. We will quote the right lodge category and safari routing for your group.",
+    ctaLabel: "View Itinerary",
+    ctaHref: "/tours/queen-elizabeth-3-days",
     relatedTourSlugs: ["lake-mburo-3-days", "gorilla-and-chimpanzee-safari-5-days", "sipi-falls-3-days-escape"],
   },
   {
@@ -420,6 +426,8 @@ export const tours: Tour[] = [
     ],
     bookingTitle: "Plan Your Lake Mburo Getaway",
     bookingDescription: "Send your travel dates and we will build the right Lake Mburo stay with lodging and activity options that fit your pace.",
+    ctaLabel: "View Itinerary",
+    ctaHref: "/tours/lake-mburo-3-days",
     relatedTourSlugs: ["queen-elizabeth-3-days", "jinja-5-days", "sipi-falls-3-days-escape"],
   },
   {
@@ -503,6 +511,8 @@ export const tours: Tour[] = [
     ],
     bookingTitle: "Customize Your Jinja Stay",
     bookingDescription: "Tell us which Jinja experiences matter most to your group and we will shape the five-day itinerary around them.",
+    ctaLabel: "View Itinerary",
+    ctaHref: "/tours/jinja-5-days",
     relatedTourSlugs: ["sipi-falls-3-days-escape", "lake-mburo-3-days", "queen-elizabeth-3-days"],
   },
 ];
