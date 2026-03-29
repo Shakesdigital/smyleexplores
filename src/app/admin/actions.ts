@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 import { clearAdminSession, createAdminSession, isAdminSessionValid } from "@/lib/admin-session";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase";
@@ -263,6 +264,7 @@ export async function loginAdminAction(formData: FormData) {
     await createAdminSession();
     redirect("/admin?success=Signed%20in%20successfully.");
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Sign-in failed.";
     redirect(`/admin/login?error=${encodeMessage(message)}`);
   }
@@ -304,6 +306,7 @@ export async function upsertSettingAction(formData: FormData) {
     revalidateSite();
     redirectWithMessage("success", `Saved setting ${key}.`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save setting.";
     redirectWithMessage("error", message);
   }
@@ -338,6 +341,7 @@ export async function upsertPageAction(formData: FormData) {
     revalidateSite();
     redirectWithMessage("success", `Saved page ${slug}.`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save page.";
     redirectWithMessage("error", message);
   }
@@ -365,6 +369,7 @@ export async function upsertTestimonialAction(formData: FormData) {
     revalidatePath("/admin");
     redirectWithMessage("success", `Saved testimonial for ${payload.name}.`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save testimonial.";
     redirectWithMessage("error", message);
   }
@@ -392,6 +397,7 @@ export async function upsertCompanyValueAction(formData: FormData) {
     revalidatePath("/admin");
     redirectWithMessage("success", `Saved value ${payload.title}.`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save company value.";
     redirectWithMessage("error", message);
   }
@@ -445,6 +451,7 @@ export async function upsertTourAction(formData: FormData) {
     }
     redirectWithTourMessage("success", `Saved tour ${slug}.`, slug);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save tour.";
     redirectWithTourMessage("error", message, String(formData.get("slug") ?? ""));
   }
@@ -480,6 +487,7 @@ export async function upsertBlogPostAction(formData: FormData) {
     revalidateSite();
     redirectWithMessage("success", `Saved blog post ${slug}.`);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save blog post.";
     redirectWithMessage("error", message);
   }
@@ -505,6 +513,7 @@ export async function updateSubmissionStatusAction(formData: FormData) {
     revalidatePath("/admin");
     redirectWithMessage("success", "Updated submission status.");
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to update submission.";
     redirectWithMessage("error", message);
   }
