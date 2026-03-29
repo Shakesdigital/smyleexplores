@@ -556,7 +556,7 @@ export async function getAdminDashboardData() {
   const toursRows = await fetchAdminTourRows(client);
 
   const pages = ((pagesResult.data ?? []) as PageRow[]).map(mapPage);
-  const tours = toursRows.map(mapTour);
+  const tours = toursRows.length ? toursRows.map(mapTour) : publicTours;
   const blogPosts = ((blogResult.data ?? []) as BlogRow[]).map(mapBlogPost);
   const testimonials = testimonialsResult.data?.length
     ? (testimonialsResult.data as TestimonialRow[]).map((row) => ({
