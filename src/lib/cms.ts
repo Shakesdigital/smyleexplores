@@ -326,6 +326,18 @@ function mapTour(row: TourRow): Tour {
   };
 }
 
+function mergeToursWithFallback(rows: TourRow[]) {
+  const mappedTours = rows.map(mapTour);
+  const mappedBySlug = new Map(mappedTours.map((tour) => [tour.slug, tour]));
+
+  const merged = [
+    ...mappedTours,
+    ...fallbackTours.filter((tour) => !mappedBySlug.has(tour.slug)),
+  ];
+
+  return merged;
+}
+
 async function fetchPublishedTourRows(client: NonNullable<ReturnType<typeof createSupabaseServerClient>>) {
   const result = await client.from("tours").select(TOUR_SELECT).eq("status", "published").order("published_at", { ascending: false });
   if (!result.error) {
@@ -434,7 +446,7 @@ export const getTours = cache(async () => {
 
   const rows = await fetchPublishedTourRows(client);
   if (!rows.length) return fallbackTours;
-  return rows.map(mapTour);
+  return mergeToursWithFallback(rows);
 });
 
 export async function getTourBySlug(slug: string) {
@@ -564,7 +576,7 @@ export async function getAdminDashboardData() {
   const toursRows = await fetchAdminTourRows(client);
 
   const pages = ((pagesResult.data ?? []) as PageRow[]).map(mapPage);
-  const tours = toursRows.length ? toursRows.map(mapTour) : publicTours;
+  const tours = toursRows.length ? mergeToursWithFallback(toursRows) : publicTours;
   const blogPosts = ((blogResult.data ?? []) as BlogRow[]).map(mapBlogPost);
   const testimonials = testimonialsResult.data?.length
     ? (testimonialsResult.data as TestimonialRow[]).map((row) => ({
