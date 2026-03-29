@@ -68,7 +68,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
               ))}
             </div>
 
-            <div className="mt-14 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="mt-14 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-8">
                 <div className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
                   <SectionHeading eyebrow="Itinerary" title="Day-by-day journey" description="The full itinerary is grouped into one continuous section for easier browsing." />
