@@ -7,6 +7,17 @@ type UploadResponse = {
   url: string;
 };
 
+async function readJsonSafely<T>(response: Response) {
+  const text = await response.text();
+  if (!text) return {} as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return { error: text } as T;
+  }
+}
+
 function inferStoragePath(url: string) {
   if (!url) return "";
 
@@ -56,7 +67,7 @@ export function ImageUploadField({
         body: formData,
       });
 
-      const payload = (await response.json()) as UploadResponse | { error?: string };
+      const payload = await readJsonSafely<UploadResponse | { error?: string }>(response);
       if (!response.ok || !("url" in payload) || !payload.url) {
         throw new Error("error" in payload && payload.error ? payload.error : "Upload failed.");
       }
@@ -84,7 +95,7 @@ export function ImageUploadField({
           body: JSON.stringify({ path: storagePath }),
         });
 
-        const payload = (await response.json()) as { error?: string };
+        const payload = await readJsonSafely<{ error?: string }>(response);
         if (!response.ok) {
           throw new Error(payload.error ?? "Delete failed.");
         }
