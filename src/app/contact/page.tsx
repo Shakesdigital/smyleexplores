@@ -61,16 +61,6 @@ export default async function ContactPage() {
           </div>
         </div>
       </section>
-      <section id="quote" className="section-space bg-white/70">
-        <div className="container-shell">
-          <SectionHeading
-            eyebrow={String(content.introEyebrow)}
-            title="Send Us a Message"
-            description="Use the same contact form below and the team will reply with the guidance or next steps you need."
-          />
-          <div className="mt-8 max-w-4xl"><ContactForm whatsappUrl={siteSettings.whatsappUrl} /></div>
-        </div>
-      </section>
     </main>
   );
 }
