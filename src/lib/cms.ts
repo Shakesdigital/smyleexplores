@@ -1,5 +1,3 @@
-import { cache } from "react";
-
 import {
   aboutStory,
   blogPosts as fallbackBlogPosts,
@@ -408,15 +406,15 @@ function mapPage(row: PageRow): CmsPage {
   };
 }
 
-export const getSiteSettings = cache(async () => {
+export async function getSiteSettings() {
   const client = createSupabaseServerClient();
   if (!client) return mapSettings([]);
 
   const { data } = await client.from("settings").select("group_key,key,value,is_public").eq("is_public", true);
   return mapSettings((data ?? []) as SettingRow[]);
-});
+}
 
-export const getNavigation = cache(async (): Promise<NavItem[]> => {
+export async function getNavigation(): Promise<NavItem[]> {
   const client = createSupabaseServerClient();
   if (!client) return fallbackNavigation;
 
@@ -428,7 +426,7 @@ export const getNavigation = cache(async (): Promise<NavItem[]> => {
 
   if (!data?.length) return fallbackNavigation;
   return data as NavigationRow[];
-});
+}
 
 export async function getPageContent<T extends Record<string, unknown>>(slug: string, fallbackContent: T) {
   const client = createSupabaseServerClient();
@@ -456,26 +454,26 @@ export async function getPageContent<T extends Record<string, unknown>>(slug: st
   };
 }
 
-export const getTours = cache(async () => {
+export async function getTours() {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTours;
 
   const rows = await fetchPublishedTourRows(client);
   if (!rows.length) return fallbackTours;
   return mergeToursWithFallback(rows);
-});
+}
 
 export async function getTourBySlug(slug: string) {
   const tours = await getTours();
   return tours.find((tour) => tour.slug === slug) ?? null;
 }
 
-export const getFeaturedTours = cache(async () => {
+export async function getFeaturedTours() {
   const tours = await getTours();
   return tours.slice(0, 6);
-});
+}
 
-export const getBlogPosts = cache(async () => {
+export async function getBlogPosts() {
   const client = createSupabaseServerClient();
   if (!client) return fallbackBlogPosts;
 
@@ -487,9 +485,9 @@ export const getBlogPosts = cache(async () => {
 
   if (!data?.length) return fallbackBlogPosts;
   return mergeBlogPostsWithFallback(data as BlogRow[]);
-});
+}
 
-export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
+export async function getTestimonials(): Promise<Testimonial[]> {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTestimonials;
 
@@ -503,9 +501,9 @@ export const getTestimonials = cache(async (): Promise<Testimonial[]> => {
     quote: row.quote,
     image: row.photo_url ?? "",
   }));
-});
+}
 
-export const getTeamMembers = cache(async (): Promise<TeamMember[]> => {
+export async function getTeamMembers(): Promise<TeamMember[]> {
   const client = createSupabaseServerClient();
   if (!client) return fallbackTeamMembers;
 
@@ -523,9 +521,9 @@ export const getTeamMembers = cache(async (): Promise<TeamMember[]> => {
     bio: row.bio ?? "",
     image: row.photo_url ?? "/images/about-story-gogolo.jpeg",
   }));
-});
+}
 
-export const getCompanyValues = cache(async (): Promise<ValueItem[]> => {
+export async function getCompanyValues(): Promise<ValueItem[]> {
   const client = createSupabaseServerClient();
   if (!client) return fallbackValueItems;
 
@@ -538,7 +536,7 @@ export const getCompanyValues = cache(async (): Promise<ValueItem[]> => {
     description: row.description ?? "",
     icon: row.icon ?? "spark",
   }));
-});
+}
 
 export function getStaticFallbackContent() {
   return {

@@ -7,6 +7,8 @@ import { Header } from "@/components/header";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { getNavigation, getSiteSettings } from "@/lib/cms";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";

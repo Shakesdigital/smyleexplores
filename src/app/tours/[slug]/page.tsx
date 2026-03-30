@@ -7,10 +7,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { TourHeroSlider } from "@/components/tour-hero-slider";
 import { getSiteSettings, getTourBySlug, getTours } from "@/lib/cms";
 
-export async function generateStaticParams() {
-  const tours = await getTours();
-  return tours.map((tour) => ({ slug: tour.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

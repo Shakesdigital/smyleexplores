@@ -8,6 +8,13 @@ export const supabase = url && anonKey ? createClient(url, anonKey) : null;
 export const hasSupabase = Boolean(supabase);
 export const hasServiceRole = Boolean(url && serviceRoleKey);
 
+function noStoreFetch(input: RequestInfo | URL, init?: RequestInit) {
+  return fetch(input, {
+    ...init,
+    cache: "no-store",
+  });
+}
+
 export function createSupabaseBrowserClient() {
   if (!url || !anonKey) return null;
   return createClient(url, anonKey);
@@ -21,6 +28,9 @@ export function createSupabaseServerClient() {
       persistSession: false,
       autoRefreshToken: false,
     },
+    global: {
+      fetch: noStoreFetch,
+    },
   });
 }
 
@@ -31,6 +41,9 @@ export function createSupabaseServiceRoleClient() {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+    },
+    global: {
+      fetch: noStoreFetch,
     },
   });
 }
