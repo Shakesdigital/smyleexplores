@@ -272,6 +272,30 @@ function extractMissingColumn(errorMessage: string) {
   return match?.[1] ?? null;
 }
 
+function buildLegacyTourCompatPayload(workingPayload: Record<string, unknown>) {
+  const currentDescription = Array.isArray(workingPayload.description)
+    ? workingPayload.description
+    : typeof workingPayload.description === "object" && workingPayload.description && Array.isArray((workingPayload.description as Record<string, unknown>).overview)
+      ? ((workingPayload.description as Record<string, unknown>).overview as unknown[])
+      : [];
+
+  return {
+    overview: currentDescription,
+    cmsCompat: {
+      destination: typeof workingPayload.destination === "string" ? workingPayload.destination : "",
+      heroSlides: Array.isArray(workingPayload.hero_slides) ? workingPayload.hero_slides : [],
+      itineraryDays: Array.isArray(workingPayload.itinerary_days) ? workingPayload.itinerary_days : [],
+      bookingTitle: typeof workingPayload.booking_title === "string" ? workingPayload.booking_title : "",
+      bookingDescription: typeof workingPayload.booking_description === "string" ? workingPayload.booking_description : "",
+      relatedTourSlugs: Array.isArray(workingPayload.related_tour_slugs) ? workingPayload.related_tour_slugs : [],
+      cardCta: {
+        label: typeof workingPayload.cta_label === "string" ? workingPayload.cta_label : "",
+        href: typeof workingPayload.cta_href === "string" ? workingPayload.cta_href : "",
+      },
+    },
+  };
+}
+
 async function upsertTourWithSchemaFallback(
   client: NonNullable<ReturnType<typeof createSupabaseServiceRoleClient>>,
   payload: Record<string, unknown>,
@@ -290,21 +314,8 @@ async function upsertTourWithSchemaFallback(
       throw new Error(result.error.message);
     }
 
-    if ((missingColumn === "cta_label" || missingColumn === "cta_href") && "description" in workingPayload) {
-      const currentDescription = Array.isArray(workingPayload.description)
-        ? workingPayload.description
-        : typeof workingPayload.description === "object" && workingPayload.description && Array.isArray((workingPayload.description as Record<string, unknown>).overview)
-          ? ((workingPayload.description as Record<string, unknown>).overview as unknown[])
-          : [];
-      const legacyDescriptionObject = {
-        overview: currentDescription,
-        cardCta: {
-          label: typeof workingPayload.cta_label === "string" ? workingPayload.cta_label : "",
-          href: typeof workingPayload.cta_href === "string" ? workingPayload.cta_href : "",
-        },
-      };
-
-      workingPayload.description = legacyDescriptionObject;
+    if ("description" in workingPayload) {
+      workingPayload.description = buildLegacyTourCompatPayload(workingPayload);
     }
 
     delete workingPayload[missingColumn];

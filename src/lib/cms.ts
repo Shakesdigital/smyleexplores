@@ -294,6 +294,14 @@ function getTourDescriptionObject(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 }
 
+function getLegacyTourCompat(value: unknown) {
+  const descriptionObject = getTourDescriptionObject(value);
+  if (!descriptionObject) return null;
+
+  const compat = asObject(descriptionObject.cmsCompat);
+  return Object.keys(compat).length ? compat : null;
+}
+
 function mapTourOverview(value: unknown, fallback: string[]) {
   const descriptionObject = getTourDescriptionObject(value);
   if (descriptionObject) {
@@ -304,10 +312,9 @@ function mapTourOverview(value: unknown, fallback: string[]) {
 }
 
 function mapLegacyTourCardCta(value: unknown) {
+  const compat = getLegacyTourCompat(value);
   const descriptionObject = getTourDescriptionObject(value);
-  if (!descriptionObject) return null;
-
-  const cardCta = asObject(descriptionObject.cardCta);
+  const cardCta = compat ? asObject(compat.cardCta) : descriptionObject ? asObject(descriptionObject.cardCta) : {};
   const label = asString(cardCta.label);
   const href = asString(cardCta.href);
 
@@ -316,13 +323,14 @@ function mapLegacyTourCardCta(value: unknown) {
 
 function mapTour(row: TourRow): Tour {
   const fallbackTour = fallbackTours.find((item) => item.slug === row.slug);
+  const legacyCompat = getLegacyTourCompat(row.description);
   const legacyCardCta = mapLegacyTourCardCta(row.description);
 
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    destination: asString(row.destination, fallbackTour?.destination ?? "Uganda"),
+    destination: asString(row.destination, asString(legacyCompat?.destination, fallbackTour?.destination ?? "Uganda")),
     shortDescription: row.summary ?? fallbackTour?.shortDescription ?? "",
     duration: row.duration,
     difficulty: row.difficulty,
@@ -331,20 +339,20 @@ function mapTour(row: TourRow): Tour {
     startingPrice: row.starting_price,
     location: row.location,
     heroImage: row.hero_image_url ?? fallbackTour?.heroImage ?? "/images/home-hero-rafting.jpeg",
-    heroSlides: mapTourHeroSlides(row.hero_slides, fallbackTour?.heroSlides ?? []),
+    heroSlides: mapTourHeroSlides(row.hero_slides ?? legacyCompat?.heroSlides, fallbackTour?.heroSlides ?? []),
     highlights: asStringArray(row.highlights, fallbackTour?.highlights ?? []),
     included: asStringArray(row.included, fallbackTour?.included ?? []),
     bring: asStringArray(row.what_to_bring, fallbackTour?.bring ?? []),
     overview: mapTourOverview(row.description, fallbackTour?.overview ?? []),
-    itineraryDays: mapTourItineraryDays(row.itinerary_days, fallbackTour?.itineraryDays ?? []),
-    bookingTitle: asString(row.booking_title, fallbackTour?.bookingTitle ?? "Request a Quote"),
+    itineraryDays: mapTourItineraryDays(row.itinerary_days ?? legacyCompat?.itineraryDays, fallbackTour?.itineraryDays ?? []),
+    bookingTitle: asString(row.booking_title, asString(legacyCompat?.bookingTitle, fallbackTour?.bookingTitle ?? "Request a Quote")),
     bookingDescription: asString(
       row.booking_description,
-      fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs.",
+      asString(legacyCompat?.bookingDescription, fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs."),
     ),
     ctaLabel: asString(row.cta_label, legacyCardCta?.label || fallbackTour?.ctaLabel || "View Itinerary"),
     ctaHref: asString(row.cta_href, legacyCardCta?.href || fallbackTour?.ctaHref || `/tours/${row.slug}`),
-    relatedTourSlugs: asStringArray(row.related_tour_slugs, fallbackTour?.relatedTourSlugs ?? []),
+    relatedTourSlugs: asStringArray(row.related_tour_slugs ?? legacyCompat?.relatedTourSlugs, fallbackTour?.relatedTourSlugs ?? []),
     status: row.status,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
