@@ -290,8 +290,33 @@ function mapTourItineraryDays(value: unknown, fallback: TourItineraryDay[]) {
   return days.length ? days : fallback;
 }
 
+function getTourDescriptionObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function mapTourOverview(value: unknown, fallback: string[]) {
+  const descriptionObject = getTourDescriptionObject(value);
+  if (descriptionObject) {
+    return asStringArray(descriptionObject.overview, fallback);
+  }
+
+  return asStringArray(value, fallback);
+}
+
+function mapLegacyTourCardCta(value: unknown) {
+  const descriptionObject = getTourDescriptionObject(value);
+  if (!descriptionObject) return null;
+
+  const cardCta = asObject(descriptionObject.cardCta);
+  const label = asString(cardCta.label);
+  const href = asString(cardCta.href);
+
+  return label || href ? { label, href } : null;
+}
+
 function mapTour(row: TourRow): Tour {
   const fallbackTour = fallbackTours.find((item) => item.slug === row.slug);
+  const legacyCardCta = mapLegacyTourCardCta(row.description);
 
   return {
     id: row.id,
@@ -310,15 +335,15 @@ function mapTour(row: TourRow): Tour {
     highlights: asStringArray(row.highlights, fallbackTour?.highlights ?? []),
     included: asStringArray(row.included, fallbackTour?.included ?? []),
     bring: asStringArray(row.what_to_bring, fallbackTour?.bring ?? []),
-    overview: asStringArray(row.description, fallbackTour?.overview ?? []),
+    overview: mapTourOverview(row.description, fallbackTour?.overview ?? []),
     itineraryDays: mapTourItineraryDays(row.itinerary_days, fallbackTour?.itineraryDays ?? []),
     bookingTitle: asString(row.booking_title, fallbackTour?.bookingTitle ?? "Request a Quote"),
     bookingDescription: asString(
       row.booking_description,
       fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs.",
     ),
-    ctaLabel: asString(row.cta_label, fallbackTour?.ctaLabel ?? "View Itinerary"),
-    ctaHref: asString(row.cta_href, fallbackTour?.ctaHref ?? `/tours/${row.slug}`),
+    ctaLabel: asString(row.cta_label, legacyCardCta?.label || fallbackTour?.ctaLabel || "View Itinerary"),
+    ctaHref: asString(row.cta_href, legacyCardCta?.href || fallbackTour?.ctaHref || `/tours/${row.slug}`),
     relatedTourSlugs: asStringArray(row.related_tour_slugs, fallbackTour?.relatedTourSlugs ?? []),
     status: row.status,
     metaTitle: row.meta_title,

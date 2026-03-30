@@ -290,6 +290,23 @@ async function upsertTourWithSchemaFallback(
       throw new Error(result.error.message);
     }
 
+    if ((missingColumn === "cta_label" || missingColumn === "cta_href") && "description" in workingPayload) {
+      const currentDescription = Array.isArray(workingPayload.description)
+        ? workingPayload.description
+        : typeof workingPayload.description === "object" && workingPayload.description && Array.isArray((workingPayload.description as Record<string, unknown>).overview)
+          ? ((workingPayload.description as Record<string, unknown>).overview as unknown[])
+          : [];
+      const legacyDescriptionObject = {
+        overview: currentDescription,
+        cardCta: {
+          label: typeof workingPayload.cta_label === "string" ? workingPayload.cta_label : "",
+          href: typeof workingPayload.cta_href === "string" ? workingPayload.cta_href : "",
+        },
+      };
+
+      workingPayload.description = legacyDescriptionObject;
+    }
+
     delete workingPayload[missingColumn];
     skippedColumns.push(missingColumn);
   }
