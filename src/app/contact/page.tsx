@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ContactForm, QuoteForm } from "@/components/forms";
+import { ContactForm } from "@/components/forms";
 import { HeroBanner } from "@/components/hero-banner";
 import { SectionHeading } from "@/components/section-heading";
 import { getPageContent, getSiteSettings } from "@/lib/cms";
@@ -63,8 +63,12 @@ export default async function ContactPage() {
       </section>
       <section id="quote" className="section-space bg-white/70">
         <div className="container-shell">
-          <SectionHeading eyebrow={String(content.quoteEyebrow)} title={String(content.quoteTitle)} />
-          <div className="mt-8 max-w-4xl"><QuoteForm whatsappUrl={siteSettings.whatsappUrl} /></div>
+          <SectionHeading
+            eyebrow={String(content.introEyebrow)}
+            title="Send Us a Message"
+            description="Use the same contact form below and the team will reply with the guidance or next steps you need."
+          />
+          <div className="mt-8 max-w-4xl"><ContactForm whatsappUrl={siteSettings.whatsappUrl} /></div>
         </div>
       </section>
     </main>
