@@ -43,7 +43,7 @@ export default async function AboutPage() {
     <main>
       <HeroBanner image={String(content.heroImage)} title={String(content.heroTitle)} subtitle={String(content.heroSubtitle)} slides={heroSlides} compact />
       <section className="section-space">
-        <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="space-y-8">
             <SectionHeading eyebrow={String(content.storyEyebrow)} title={String(content.storyTitle)} />
             <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-soft">
@@ -52,7 +52,11 @@ export default async function AboutPage() {
               </div>
             </div>
           </div>
-          <div className="prose-copy text-neutral-600">{storyParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+          <div className="flex h-full items-center">
+            <div className="prose-copy max-w-2xl text-neutral-600 lg:py-8">
+              {storyParagraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+          </div>
         </div>
       </section>
       <section className="section-space pt-0">
