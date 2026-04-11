@@ -117,9 +117,11 @@ export default async function HomePage() {
           className="absolute inset-0 bg-cover"
           style={{ backgroundImage: `url('${String(content.quoteImage)}')`, backgroundPosition: "center 22%" }}
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/36" />
         <div className="container-shell relative flex min-h-[inherit] items-center">
-          <blockquote className="mx-auto max-w-4xl text-center text-3xl font-black leading-tight text-white md:text-5xl">{String(content.quoteText)}</blockquote>
+          <blockquote className="mx-auto max-w-4xl text-center text-2xl font-black leading-tight text-white md:text-4xl">
+            {String(content.quoteText)}
+          </blockquote>
         </div>
       </section>
       <section className="section-space">

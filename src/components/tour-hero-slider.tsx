@@ -19,23 +19,29 @@ export function TourHeroSlider({ slides, fallbackTitle }: { slides: TourHeroSlid
   }, [slides.length]);
 
   return (
-    <section className="relative min-h-[82vh] overflow-hidden bg-[var(--forest-deep)]">
+    <section className="relative min-h-[76vh] overflow-hidden bg-[var(--forest-deep)]">
       {slides.map((slide, index) => (
         <div
           key={`${slide.title}-${index}`}
           className={`absolute inset-0 transition-opacity duration-700 ${index === activeIndex ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <Image src={slide.image} alt={slide.title || fallbackTitle} fill priority={index === 0} className="object-cover" />
-          <div className="hero-overlay absolute inset-0 bg-black/28" />
+          <div className="hero-overlay absolute inset-0" />
         </div>
       ))}
 
-      <div className="container-shell relative flex min-h-[82vh] flex-col justify-end py-16 text-white">
-        <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 backdrop-blur-[3px]">
+      <div className="container-shell relative flex min-h-[76vh] flex-col justify-end py-16 text-white">
+        <div className="max-w-4xl">
           <div className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--orange-soft)]">Destination Itinerary</div>
-          <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">{slides[activeIndex]?.title ?? fallbackTitle}</h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-white/85 md:text-lg">
-            {slides[activeIndex]?.subtitle ?? "Explore this Uganda experience day by day."}
+          <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl lg:text-[3.5rem]">
+            <span className="box-decoration-clone inline bg-black/45 px-4 py-2">
+              {slides[activeIndex]?.title ?? fallbackTitle}
+            </span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-white/92 md:text-lg">
+            <span className="box-decoration-clone inline bg-black/35 px-4 py-2">
+              {slides[activeIndex]?.subtitle ?? "Explore this Uganda experience day by day."}
+            </span>
           </p>
         </div>
 

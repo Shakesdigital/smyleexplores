@@ -91,10 +91,16 @@ export function HeroBanner({
       <div className="hero-overlay absolute inset-0" />
       <div className="pattern-grid absolute inset-0 opacity-40" />
       <div className={`container-shell relative flex min-h-[inherit] flex-col justify-end ${compact ? "py-14 md:py-16" : "py-16 md:py-24"}`}>
-        <div className="max-w-4xl rounded-[2rem] border border-white/10 bg-black/10 p-8 text-white backdrop-blur-[3px] md:p-10">
+        <div className="max-w-4xl text-white">
           <div className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-[var(--orange-soft)]">Smyle Explores</div>
-          <h1 className="text-4xl font-black leading-tight md:text-6xl">{activeSlide.title}</h1>
-          {activeSlide.subtitle ? <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">{activeSlide.subtitle}</p> : null}
+          <h1 className="text-3xl font-black leading-tight md:text-5xl lg:text-[3.5rem]">
+            <span className="box-decoration-clone inline bg-black/45 px-4 py-2">{activeSlide.title}</span>
+          </h1>
+          {activeSlide.subtitle ? (
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/92 md:text-lg">
+              <span className="box-decoration-clone inline bg-black/35 px-4 py-2">{activeSlide.subtitle}</span>
+            </p>
+          ) : null}
           {ctaLabel && ctaHref ? (
             <Link href={ctaHref} className="mt-10 inline-flex rounded-full bg-[var(--orange)] px-7 py-4 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--forest)]">
               {ctaLabel}

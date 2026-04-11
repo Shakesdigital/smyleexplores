@@ -51,6 +51,12 @@ function parseJsonField(value: FormDataEntryValue | null, fieldName: string) {
   }
 }
 
+function sanitizeHtmlInput(value: FormDataEntryValue | null) {
+  return String(value ?? "")
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .trim();
+}
+
 function collectLinesByPrefix(formData: FormData, prefix: string) {
   const entries = Array.from(formData.entries())
     .filter(([key, value]) => key.startsWith(prefix) && String(value).trim().length > 0)
@@ -624,6 +630,13 @@ export async function upsertBlogPostAction(formData: FormData) {
       .maybeSingle();
 
     const existingData = existingPost.data ?? null;
+    const nextHtml = formData.has("content_html") ? sanitizeHtmlInput(formData.get("content_html")) : null;
+    const nextContent = formData.has("content")
+      ? parseJsonField(formData.get("content"), "blog content")
+      : {
+          ...((existingData?.content as Record<string, unknown> | null) ?? {}),
+          ...(nextHtml !== null ? { html: nextHtml } : {}),
+        };
 
     const { error } = await client.from("blog_posts").upsert(
       {
@@ -635,7 +648,7 @@ export async function upsertBlogPostAction(formData: FormData) {
           ? optionalValue(formData.get("featured_image_url"))
           : existingData?.featured_image_url ?? null,
         status: String(formData.get("status") ?? "draft"),
-        content: formData.has("content") ? parseJsonField(formData.get("content"), "blog content") : existingData?.content ?? {},
+        content: nextContent,
         meta_title: formData.has("meta_title") ? optionalValue(formData.get("meta_title")) : existingData?.meta_title ?? null,
         meta_description: formData.has("meta_description")
           ? optionalValue(formData.get("meta_description"))
@@ -656,6 +669,28 @@ export async function upsertBlogPostAction(formData: FormData) {
     if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save blog post.";
     redirectWithMessage("error", message);
+  }
+}
+
+export async function deleteBlogPostAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = String(formData.get("id") ?? "");
+    const slug = String(formData.get("slug") ?? "");
+    if (!id) throw new Error("Missing blog post id.");
+
+    const { error } = await client.from("blog_posts").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidateSite();
+    redirect(`/admin?tab=blog&success=${encodeMessage(`Deleted blog post ${slug || "entry"}.`)}`);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : "Failed to delete blog post.";
+    redirect(`/admin?tab=blog&error=${encodeMessage(message)}`);
   }
 }
 

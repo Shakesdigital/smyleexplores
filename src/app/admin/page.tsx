@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { AdminSubmitButton } from "@/components/admin/submit-button";
 import { aboutStory, whyChooseUs } from "@/lib/content";
 import { getAdminDashboardData } from "@/lib/cms";
@@ -11,6 +12,7 @@ import { isAdminSessionValid } from "@/lib/admin-session";
 import { CmsPage, Tour } from "@/lib/types";
 
 import {
+  deleteBlogPostAction,
   deleteTestimonialAction,
   logoutAdminAction,
   updateSubmissionStatusAction,
@@ -29,10 +31,6 @@ type AdminTab = "landing" | "tours" | "blog" | "submissions";
 type BlogEditorTab = "content" | "publishing" | "seo";
 type SlideContent = { image: string; title: string; subtitle: string };
 
-function prettyJson(value: Record<string, unknown>) {
-  return JSON.stringify(value, null, 2);
-}
-
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
@@ -43,6 +41,23 @@ function asStringArray(value: unknown, fallback: string[] = []) {
 
 function asObjectArray<T extends Record<string, unknown>>(value: unknown, fallback: T[] = []) {
   return Array.isArray(value) ? value.filter((item): item is T => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : fallback;
+}
+
+function getBlogEditorHtml(value: unknown) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const content = value as Record<string, unknown>;
+    if (typeof content.html === "string" && content.html.trim()) {
+      return content.html;
+    }
+    if (Array.isArray(content.paragraphs)) {
+      return content.paragraphs
+        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        .map((paragraph) => `<p>${paragraph}</p>`)
+        .join("");
+    }
+  }
+
+  return "";
 }
 
 function Field({ label, name, defaultValue }: { label: string; name: string; defaultValue?: string }) {
@@ -128,6 +143,17 @@ function SaveButton({ children }: { children: string }) {
     <AdminSubmitButton
       className="mt-5 rounded-full bg-[var(--forest)] px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-white transition disabled:cursor-not-allowed disabled:opacity-75"
       pendingLabel="Saving..."
+    >
+      {children}
+    </AdminSubmitButton>
+  );
+}
+
+function DeleteButton({ children }: { children: string }) {
+  return (
+    <AdminSubmitButton
+      className="rounded-full border border-red-200 bg-white px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-red-600 transition disabled:cursor-not-allowed disabled:opacity-75"
+      pendingLabel="Deleting..."
     >
       {children}
     </AdminSubmitButton>
@@ -1152,7 +1178,7 @@ export default async function AdminPage({
 
         <section id="blog-management" className="rounded-[2rem] border border-black/5 bg-white p-8 shadow-soft">
           <h2 className="text-3xl font-black text-[var(--forest-deep)]">Blog Posts</h2>
-          <p className="mt-2 text-sm leading-7 text-neutral-600">Open an existing post to edit it, or start a new post from a dedicated creation action.</p>
+          <p className="mt-2 text-sm leading-7 text-neutral-600">Create, edit, publish, and remove blog posts from one CMS workspace with a more comfortable WYSIWYG writing area.</p>
           <div className="mt-6">
             <Link
               href="#existing-posts"
@@ -1165,7 +1191,7 @@ export default async function AdminPage({
               </span>
             </Link>
           </div>
-          <div className="mt-8 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
+          <div id="existing-posts" className="mt-8 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
             <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h3 className="text-2xl font-black text-[var(--forest-deep)]">Existing Blog Posts</h3>
@@ -1174,40 +1200,43 @@ export default async function AdminPage({
                 </p>
               </div>
             </div>
-            <div className="mt-5 grid gap-3 lg:grid-cols-2">
-              {dashboard.blogPosts.map((post) => (
-                <Link
-                  key={`blog-edit-link-${post.slug}`}
-                  href={`/admin?tab=blog&post=${post.slug}`}
-                  className="flex items-center justify-between rounded-2xl border border-black/5 bg-white px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/35"
-                >
-                  <span>
-                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{post.category}</span>
-                    <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{post.title}</span>
-                  </span>
-                  <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
-                    Edit this Post
-                  </span>
-                </Link>
-              ))}
+            <div className="mt-5 grid gap-4 xl:grid-cols-2">
+              {dashboard.blogPosts.length ? (
+                dashboard.blogPosts.map((post) => (
+                  <div key={`blog-edit-link-${post.slug}`} className="rounded-2xl border border-black/5 bg-white p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{post.category}</div>
+                        <div className="mt-2 text-xl font-black text-[var(--forest-deep)]">{post.title}</div>
+                        <p className="mt-3 text-sm leading-7 text-neutral-600">{post.excerpt || "No excerpt added yet."}</p>
+                      </div>
+                      <span className="rounded-full border border-black/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-neutral-500">
+                        {post.status ?? "draft"}
+                      </span>
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Link
+                        href={`/admin?tab=blog&post=${post.slug}`}
+                        className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white"
+                      >
+                        Edit this Post
+                      </Link>
+                      {post.id ? (
+                        <form action={deleteBlogPostAction}>
+                          <input type="hidden" name="id" value={post.id} />
+                          <input type="hidden" name="slug" value={post.slug} />
+                          <DeleteButton>Delete Post</DeleteButton>
+                        </form>
+                      ) : null}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-black/10 bg-white p-6 text-sm leading-7 text-neutral-600">
+                  No live blog posts yet. Use "Add a Blog Post" to create the first one.
+                </div>
+              )}
             </div>
-          </div>
-          <div className="mt-6 grid gap-3 lg:grid-cols-2">
-            {dashboard.blogPosts.map((post) => (
-              <Link
-                key={`blog-link-${post.slug}`}
-                href={`/admin?tab=blog&post=${post.slug}`}
-                className="flex items-center justify-between rounded-2xl border border-black/5 bg-[var(--sand)]/35 px-5 py-4 transition hover:border-[var(--forest)] hover:bg-[var(--sand)]/60"
-              >
-                <span>
-                  <span className="block text-xs font-bold uppercase tracking-[0.2em] text-[var(--orange)]">{post.category}</span>
-                  <span className="mt-1 block text-base font-black text-[var(--forest-deep)]">{post.title}</span>
-                </span>
-                <span className="rounded-full border border-[var(--forest)] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--forest)]">
-                  Edit this Post
-                </span>
-              </Link>
-            ))}
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/admin?tab=blog&post=new" className="rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--forest-deep)]">
@@ -1222,6 +1251,7 @@ export default async function AdminPage({
           {activePostSlug === "new" ? (
           <form action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
             <h3 className="text-2xl font-black text-[var(--forest-deep)]">Add New Blog Post</h3>
+            <p className="mt-2 text-sm leading-7 text-neutral-600">Write the article body in the WYSIWYG editor, then manage image, publishing, and SEO in the other tabs.</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <EditorTabLink href="/admin?tab=blog&post=new&editor=content" label="Writing Tool" active={activeBlogEditorTab === "content"} />
               <EditorTabLink href="/admin?tab=blog&post=new&editor=publishing" label="Media & Publish" active={activeBlogEditorTab === "publishing"} />
@@ -1237,13 +1267,7 @@ export default async function AdminPage({
                 <Field label="Category" name="category" defaultValue="" />
                 <TextAreaField label="Excerpt" name="excerpt" defaultValue="" rows={3} />
                 <div className="lg:col-span-2">
-                  <TextAreaField
-                    label="Content JSON"
-                    name="content"
-                    defaultValue={prettyJson({ paragraphs: [], heroImage: "", ctaLabel: "", ctaHref: "" })}
-                    rows={12}
-                    mono
-                  />
+                  <RichTextEditor label="Article Body" name="content_html" defaultValue="" />
                 </div>
               </div>
             ) : null}
@@ -1268,7 +1292,7 @@ export default async function AdminPage({
           {selectedBlogPost ? (
               <form key={selectedBlogPost.slug} action={upsertBlogPostAction} className="mt-8 rounded-[2rem] border border-black/5 bg-[var(--sand)]/45 p-6">
                 <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedBlogPost.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-neutral-600">Use the editor tools below to build up the blog post in focused sections instead of one long form.</p>
+                <p className="mt-2 text-sm leading-7 text-neutral-600">Use the WYSIWYG editor for the article body, then switch tabs for publishing and SEO controls.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <EditorTabLink href={`/admin?tab=blog&post=${selectedBlogPost.slug}&editor=content`} label="Writing Tool" active={activeBlogEditorTab === "content"} />
                   <EditorTabLink href={`/admin?tab=blog&post=${selectedBlogPost.slug}&editor=publishing`} label="Media & Publish" active={activeBlogEditorTab === "publishing"} />
@@ -1284,7 +1308,7 @@ export default async function AdminPage({
                     <Field label="Category" name="category" defaultValue={selectedBlogPost.category} />
                     <TextAreaField label="Excerpt" name="excerpt" defaultValue={selectedBlogPost.excerpt} rows={3} />
                     <div className="lg:col-span-2">
-                      <TextAreaField label="Content JSON" name="content" defaultValue={prettyJson(selectedBlogPost.content ?? {})} rows={12} mono />
+                      <RichTextEditor label="Article Body" name="content_html" defaultValue={getBlogEditorHtml(selectedBlogPost.content)} />
                     </div>
                   </div>
                 ) : null}
@@ -1307,6 +1331,13 @@ export default async function AdminPage({
                 ) : null}
                 <SaveButton>Save Post</SaveButton>
               </form>
+          ) : null}
+          {selectedBlogPost?.id ? (
+            <form action={deleteBlogPostAction} className="mt-4">
+              <input type="hidden" name="id" value={selectedBlogPost.id} />
+              <input type="hidden" name="slug" value={selectedBlogPost.slug} />
+              <DeleteButton>Delete Post</DeleteButton>
+            </form>
           ) : null}
         </section>
           </>
