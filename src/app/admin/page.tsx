@@ -273,6 +273,10 @@ function TourEditor({
         <Field label="Published At" name="published_at" defaultValue={tour.publishedAt ?? ""} />
       </div>
 
+      <p className="mt-3 text-sm leading-7 text-neutral-600">
+        Published tours open on the frontend immediately after saving. Draft tours stay hidden until you switch the status to published.
+      </p>
+
       <TextAreaField label="Short Description" name="summary" defaultValue={tour.shortDescription} rows={3} />
 
       <div className="mt-6 rounded-[1.75rem] border border-black/5 bg-white p-5">
@@ -1138,7 +1142,7 @@ export default async function AdminPage({
                   ctaLabel: "View Itinerary",
                   ctaHref: "",
                   relatedTourSlugs: [],
-                  status: "draft",
+                  status: "published",
                   metaTitle: "",
                   metaDescription: "",
                   metaImageUrl: "",

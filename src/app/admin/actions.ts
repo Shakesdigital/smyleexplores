@@ -27,6 +27,15 @@ function optionalValue(value: FormDataEntryValue | null) {
   return normalized.length > 0 ? normalized : null;
 }
 
+function normalizeSlug(value: FormDataEntryValue | null) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function encodeMessage(message: string) {
   return encodeURIComponent(message);
 }
@@ -566,7 +575,13 @@ export async function upsertTourAction(formData: FormData) {
     const client = createSupabaseServiceRoleClient();
     if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
 
-    const slug = String(formData.get("slug") ?? "");
+    const slug = normalizeSlug(formData.get("slug"));
+    if (!slug) {
+      throw new Error("A valid slug is required.");
+    }
+
+    const status = String(formData.get("status") ?? "published");
+    const publishedAtInput = optionalValue(formData.get("published_at"));
     const payload = {
       slug,
       title: String(formData.get("title") ?? ""),
@@ -590,11 +605,11 @@ export async function upsertTourAction(formData: FormData) {
       cta_label: optionalValue(formData.get("cta_label")),
       cta_href: optionalValue(formData.get("cta_href")),
       related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
-      status: String(formData.get("status") ?? "draft"),
+      status,
       meta_title: optionalValue(formData.get("meta_title")),
       meta_description: optionalValue(formData.get("meta_description")),
       meta_image_url: optionalValue(formData.get("meta_image_url")),
-      published_at: optionalValue(formData.get("published_at")),
+      published_at: status === "published" ? publishedAtInput ?? new Date().toISOString() : publishedAtInput,
     };
 
     const { skippedColumns } = await upsertTourWithSchemaFallback(client, payload);
