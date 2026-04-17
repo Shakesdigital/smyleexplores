@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   aboutStory,
   featuredTours as fallbackFeaturedTours,
@@ -25,6 +27,10 @@ import {
   TourItineraryDay,
   ValueItem,
 } from "@/lib/types";
+
+type CmsReadClient =
+  | NonNullable<ReturnType<typeof createSupabaseServerClient>>
+  | NonNullable<ReturnType<typeof createSupabaseServiceRoleClient>>;
 
 type SettingRow = {
   group_key: string;
@@ -372,7 +378,11 @@ function mergeToursWithFallback(rows: TourRow[]) {
   return merged;
 }
 
-async function fetchPublishedTourRows(client: NonNullable<ReturnType<typeof createSupabaseServerClient>>) {
+function createCmsReadClient(): CmsReadClient | null {
+  return createSupabaseServerClient() ?? createSupabaseServiceRoleClient();
+}
+
+async function fetchPublishedTourRows(client: CmsReadClient) {
   const result = await client.from("tours").select(TOUR_SELECT).eq("status", "published").order("published_at", { ascending: false });
   if (!result.error) {
     return (result.data ?? []) as TourRow[];
@@ -427,7 +437,7 @@ function mapPage(row: PageRow): CmsPage {
 }
 
 export async function getSiteSettings() {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return mapSettings([]);
 
   const { data } = await client.from("settings").select("group_key,key,value,is_public").eq("is_public", true);
@@ -435,7 +445,7 @@ export async function getSiteSettings() {
 }
 
 export async function getNavigation(): Promise<NavItem[]> {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return fallbackNavigation;
 
   const { data } = await client
@@ -449,7 +459,7 @@ export async function getNavigation(): Promise<NavItem[]> {
 }
 
 export async function getPageContent<T extends Record<string, unknown>>(slug: string, fallbackContent: T) {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) {
     return { page: null as CmsPage | null, content: fallbackContent };
   }
@@ -458,6 +468,7 @@ export async function getPageContent<T extends Record<string, unknown>>(slug: st
     .from("pages")
     .select("id,slug,title,excerpt,status,content,featured_image_url,meta_title,meta_description,meta_image_url,published_at")
     .eq("slug", slug)
+    .eq("status", "published")
     .maybeSingle();
 
   if (!data) {
@@ -475,7 +486,7 @@ export async function getPageContent<T extends Record<string, unknown>>(slug: st
 }
 
 export async function getTours() {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return fallbackTours;
 
   const rows = await fetchPublishedTourRows(client);
@@ -494,7 +505,7 @@ export async function getFeaturedTours() {
 }
 
 export async function getBlogPosts() {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return [];
 
   const { data } = await client
@@ -508,7 +519,7 @@ export async function getBlogPosts() {
 }
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return fallbackTestimonials;
 
   const { data } = await client.from("testimonials").select("id,name,title,quote,photo_url").order("order_column", { ascending: true });
@@ -524,7 +535,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
 }
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return fallbackTeamMembers;
 
   const { data } = await client
@@ -544,7 +555,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 }
 
 export async function getCompanyValues(): Promise<ValueItem[]> {
-  const client = createSupabaseServerClient();
+  const client = createCmsReadClient();
   if (!client) return fallbackValueItems;
 
   const { data } = await client.from("company_values").select("id,title,description,icon").order("order_column", { ascending: true });
