@@ -36,6 +36,27 @@ function normalizeSlug(value: FormDataEntryValue | null) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeTourCtaHref(value: FormDataEntryValue | null, slug: string) {
+  const normalized = String(value ?? "").trim();
+  if (!normalized) {
+    return `/tours/${slug}`;
+  }
+
+  if (/^(https?:|mailto:|tel:)/i.test(normalized)) {
+    return normalized;
+  }
+
+  if (normalized.startsWith("/tours/")) {
+    return `/tours/${normalizeSlug(normalized.slice("/tours/".length)) || slug}`;
+  }
+
+  if (normalized.startsWith("/")) {
+    return normalized;
+  }
+
+  return `/tours/${normalizeSlug(normalized) || slug}`;
+}
+
 function encodeMessage(message: string) {
   return encodeURIComponent(message);
 }
@@ -603,7 +624,7 @@ export async function upsertTourAction(formData: FormData) {
       booking_title: optionalValue(formData.get("booking_title")),
       booking_description: optionalValue(formData.get("booking_description")),
       cta_label: optionalValue(formData.get("cta_label")),
-      cta_href: optionalValue(formData.get("cta_href")),
+      cta_href: normalizeTourCtaHref(formData.get("cta_href"), slug),
       related_tour_slugs: parseLines(formData.get("related_tour_slugs")),
       status,
       meta_title: optionalValue(formData.get("meta_title")),

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { QuoteForm } from "@/components/forms";
 import { RelatedToursCarousel } from "@/components/related-tours-carousel";
@@ -8,6 +8,23 @@ import { TourHeroSlider } from "@/components/tour-hero-slider";
 import { getSiteSettings, getTourBySlug, getTours } from "@/lib/cms";
 
 export const dynamic = "force-dynamic";
+
+function normalizeSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getCanonicalTourPath(routeSlug: string, ctaHref: string) {
+  if (ctaHref.startsWith("/tours/")) {
+    return `/tours/${normalizeSlug(decodeURIComponent(ctaHref.slice("/tours/".length)))}`;
+  }
+
+  return `/tours/${normalizeSlug(routeSlug)}`;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -30,6 +47,11 @@ export default async function TourDetailPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const [tour, allTours, settings] = await Promise.all([getTourBySlug(slug), getTours(), getSiteSettings()]);
   if (!tour) notFound();
+
+  const canonicalPath = getCanonicalTourPath(tour.slug, tour.ctaHref);
+  if (canonicalPath !== `/tours/${slug}`) {
+    permanentRedirect(canonicalPath);
+  }
 
   return (
     <main>

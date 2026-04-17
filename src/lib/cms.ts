@@ -160,6 +160,40 @@ function asString(value: unknown, fallback = "") {
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
 }
 
+function normalizeSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function normalizeTourHref(value: string | null | undefined, slug: string) {
+  const normalizedSlug = normalizeSlug(slug);
+  const href = (value ?? "").trim();
+
+  if (!href) {
+    return `/tours/${normalizedSlug}`;
+  }
+
+  if (/^(https?:|mailto:|tel:)/i.test(href)) {
+    return href;
+  }
+
+  if (href.startsWith("/tours/")) {
+    const routeSlug = normalizeSlug(decodeURIComponent(href.slice("/tours/".length)));
+    return `/tours/${routeSlug || normalizedSlug}`;
+  }
+
+  if (href.startsWith("/")) {
+    return href;
+  }
+
+  const normalizedHref = normalizeSlug(decodeURIComponent(href));
+  return `/tours/${normalizedHref || normalizedSlug}`;
+}
+
 function asStringArray(value: unknown, fallback: string[] = []) {
   if (!Array.isArray(value)) {
     return fallback;
@@ -356,7 +390,7 @@ function mapTour(row: TourRow): Tour {
       asString(legacyCompat?.bookingDescription, fallbackTour?.bookingDescription ?? "Share your dates, group size, and any special travel needs."),
     ),
     ctaLabel: asString(row.cta_label, legacyCardCta?.label || fallbackTour?.ctaLabel || "View Itinerary"),
-    ctaHref: asString(row.cta_href, legacyCardCta?.href || fallbackTour?.ctaHref || `/tours/${row.slug}`),
+    ctaHref: normalizeTourHref(row.cta_href ?? legacyCardCta?.href ?? fallbackTour?.ctaHref ?? null, row.slug),
     relatedTourSlugs: asStringArray(row.related_tour_slugs ?? legacyCompat?.relatedTourSlugs, fallbackTour?.relatedTourSlugs ?? []),
     status: row.status,
     metaTitle: row.meta_title,
@@ -496,7 +530,11 @@ export async function getTours() {
 
 export async function getTourBySlug(slug: string) {
   const tours = await getTours();
-  return tours.find((tour) => tour.slug === slug) ?? null;
+  const exactMatch = tours.find((tour) => tour.slug === slug);
+  if (exactMatch) return exactMatch;
+
+  const normalizedSlug = normalizeSlug(decodeURIComponent(slug));
+  return tours.find((tour) => normalizeSlug(tour.slug) === normalizedSlug) ?? null;
 }
 
 export async function getFeaturedTours() {
