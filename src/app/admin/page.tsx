@@ -13,7 +13,9 @@ import { CmsPage, Tour } from "@/lib/types";
 
 import {
   deleteBlogPostAction,
+  deleteCompanyValueAction,
   deleteTestimonialAction,
+  deleteTourAction,
   logoutAdminAction,
   updateSubmissionStatusAction,
   updateAdminCredentialsAction,
@@ -998,8 +1000,21 @@ export default async function AdminPage({
             <div className="mt-8 space-y-6">
               {dashboard.companyValues.map((value, index) => (
                 <form key={value.id ?? value.title} action={upsertCompanyValueAction} className="rounded-2xl border border-black/5 bg-[var(--sand)]/45 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">Value {index + 1}</div>
+                    {value.id ? (
+                      <button
+                        type="submit"
+                        formAction={deleteCompanyValueAction}
+                        className="rounded-full border border-red-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
                   {value.id ? <input type="hidden" name="id" value={value.id} /> : null}
                   <input type="hidden" name="order_column" value={String(index)} />
+                  {value.id ? <input type="hidden" name="title" value={value.title} /> : null}
                   <Field label="Title" name="title" defaultValue={value.title} />
                   <div className="mt-3">
                     <TextAreaField label="Description" name="description" defaultValue={value.description} rows={4} />
@@ -1101,9 +1116,18 @@ export default async function AdminPage({
                       <span>{tour.status ?? "published"}</span>
                     </div>
                   </div>
-                  <Link href={`/admin?tab=tours&tour=${tour.slug}`} className="mt-auto rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
-                    Edit this Tour
-                  </Link>
+                  <div className="mt-auto flex flex-wrap gap-3">
+                    <Link href={`/admin?tab=tours&tour=${tour.slug}`} className="rounded-full border border-[var(--forest)] px-5 py-3 text-sm font-bold text-[var(--forest)] transition hover:bg-[var(--forest)] hover:text-white">
+                      Edit this Tour
+                    </Link>
+                    {tour.id ? (
+                      <form action={deleteTourAction}>
+                        <input type="hidden" name="id" value={tour.id} />
+                        <input type="hidden" name="slug" value={tour.slug} />
+                        <DeleteButton>Delete Tour</DeleteButton>
+                      </form>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             ))}
@@ -1155,8 +1179,19 @@ export default async function AdminPage({
 
           {selectedTour ? (
             <div className="mt-10 rounded-[1.75rem] border border-black/5 bg-[var(--sand)]/35 p-6">
-              <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
-              <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-[var(--forest-deep)]">Editing: {selectedTour.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-neutral-600">This form maps directly to the live landing page: hero slides, overview, itinerary days, booking copy, and SEO.</p>
+                </div>
+                {selectedTour.id ? (
+                  <form action={deleteTourAction}>
+                    <input type="hidden" name="id" value={selectedTour.id} />
+                    <input type="hidden" name="slug" value={selectedTour.slug} />
+                    <DeleteButton>Delete Tour</DeleteButton>
+                  </form>
+                ) : null}
+              </div>
               <div className="mt-4">
                 <TourEditor
                   key={selectedTour.slug}

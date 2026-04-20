@@ -590,6 +590,29 @@ export async function upsertCompanyValueAction(formData: FormData) {
   }
 }
 
+export async function deleteCompanyValueAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = String(formData.get("id") ?? "");
+    const title = String(formData.get("title") ?? "");
+    if (!id) throw new Error("Missing company value id.");
+
+    const { error } = await client.from("company_values").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath("/about");
+    revalidatePath("/admin");
+    redirectWithMessage("success", `Deleted value ${title || "entry"}.`);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : "Failed to delete company value.";
+    redirectWithMessage("error", message);
+  }
+}
+
 export async function upsertTourAction(formData: FormData) {
   try {
     await requireAdminSession();
@@ -649,6 +672,31 @@ export async function upsertTourAction(formData: FormData) {
     if (isRedirectError(error)) throw error;
     const message = error instanceof Error ? error.message : "Failed to save tour.";
     redirectWithTourMessage("error", message, String(formData.get("slug") ?? ""));
+  }
+}
+
+export async function deleteTourAction(formData: FormData) {
+  try {
+    await requireAdminSession();
+    const client = createSupabaseServiceRoleClient();
+    if (!client) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+
+    const id = String(formData.get("id") ?? "");
+    const slug = String(formData.get("slug") ?? "");
+    if (!id) throw new Error("Missing tour id.");
+
+    const { error } = await client.from("tours").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    revalidateSite();
+    if (slug) {
+      revalidatePath(`/tours/${slug}`);
+    }
+    redirect(`/admin?tab=tours&success=${encodeMessage(`Deleted tour ${slug || "entry"}.`)}`);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : "Failed to delete tour.";
+    redirect(`/admin?tab=tours&error=${encodeMessage(message)}`);
   }
 }
 

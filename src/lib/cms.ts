@@ -401,15 +401,7 @@ function mapTour(row: TourRow): Tour {
 }
 
 function mergeToursWithFallback(rows: TourRow[]) {
-  const mappedTours = rows.map(mapTour);
-  const mappedBySlug = new Map(mappedTours.map((tour) => [tour.slug, tour]));
-
-  const merged = [
-    ...mappedTours,
-    ...fallbackTours.filter((tour) => !mappedBySlug.has(tour.slug)),
-  ];
-
-  return merged;
+  return rows.map(mapTour);
 }
 
 function createCmsReadClient(): CmsReadClient | null {
